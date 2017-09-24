@@ -3,19 +3,24 @@ using System.Reflection;
 
 namespace LocalSearchEngine
 {
-    class Program
+    public class Program
     {
         private static readonly string _workingDir = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
-            var hoot = new Hoot.Hoot($"{_workingDir}/Indexes", "test", false);
+            //var hoot = new Hoot.Hoot($"{_workingDir}/Indexes", "test", false);
 
-            hoot.FreeMemory();
+            //hoot.FreeMemory();
 
-            hoot.Index(0, "this is some great text!");
+            //hoot.Index(0, "this is some great text!");
 
-            hoot.OptimizeIndex();
+            //hoot.OptimizeIndex();
+
+            var pm = new PageManager();
+            pm.AddPage(new Page() {Url = "https://lord.technology"});
+
+            var next = pm.NextToCrawl();
         }
     }
 }
