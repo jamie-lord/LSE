@@ -9,24 +9,44 @@ namespace LocalSearchEngine
     {
         private static string _workingDir = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 
-        private LiteDatabase _db = new LiteDatabase($"{_workingDir}/Pages.db");
+        private readonly LiteDatabase _db = new LiteDatabase($"{_workingDir}/LSE.db");
 
-        private LiteCollection<Page> _pages;
+        private LiteCollection<CrawledPage> _crawledPages;
+
+        private LiteCollection<NewPage> _newPages;
 
         public PageManager()
         {
-            _pages = _db.GetCollection<Page>();
-            _pages.EnsureIndex(x => x.Url);
+            _crawledPages = _db.GetCollection<CrawledPage>();
+            _crawledPages.EnsureIndex(x => x.Uri);
+
+            _newPages = _db.GetCollection<NewPage>();
+            _newPages.EnsureIndex(x => x.Added);
         }
 
-        public void AddPage(Page page)
+        public void AddCrawledPage(CrawledPage page)
         {
-            _pages.Upsert(page);
+            _crawledPages.Upsert(page);
         }
 
-        public Page NextToCrawl()
+        public void AddNewPage(NewPage page)
         {
-            return _pages.FindOne(x => x.LastCheck == null);
+            _newPages.Upsert(page);
+        }
+
+        public NewPage NextToCrawl()
+        {
+            var oldest = _newPages.Min("Added");
+            if (oldest != null)
+            {
+                return _newPages.FindOne(x => x.Added == oldest.AsDateTime);
+            }
+            return null;
+        }
+
+        public void RemoveNewPage(NewPage page)
+        {
+            _newPages.Delete(page.Id);
         }
 
         public void Dispose()

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Reflection;
 
 namespace LocalSearchEngine
@@ -6,6 +7,8 @@ namespace LocalSearchEngine
     public class Program
     {
         private static readonly string _workingDir = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+
+        private static readonly PageManager _pageManager = new PageManager();
 
         public static void Main(string[] args)
         {
@@ -17,10 +20,29 @@ namespace LocalSearchEngine
 
             //hoot.OptimizeIndex();
 
-            var pm = new PageManager();
-            pm.AddPage(new Page() {Url = "https://lord.technology"});
+            SeedNewPages();
 
-            var next = pm.NextToCrawl();
+            NewPageCrawl();
+        }
+
+        private static void SeedNewPages()
+        {
+            _pageManager.AddNewPage(new NewPage { Uri = new Uri("https://www.theguardian.com/uk"), Added = DateTime.Now });
+            _pageManager.AddNewPage(new NewPage { Uri = new Uri("https://lord.technology"), Added = DateTime.Now });
+            _pageManager.AddNewPage(new NewPage { Uri = new Uri("https://arstechnica.co.uk/"), Added = DateTime.Now });
+        }
+
+        private static void NewPageCrawl()
+        {
+            var newPage = _pageManager.NextToCrawl();
+            if (newPage == null)
+            {
+                return;
+            }
+
+            var crawler = new Crawler();
+            crawler.Crawl(newPage.Uri);
+            _pageManager.RemoveNewPage(newPage);
         }
     }
 }

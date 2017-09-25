@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LocalSearchEngine", "LocalSearchEngine\LocalSearchEngine.csproj", "{97DFDF44-1D0E-465D-9B5E-4E92DA3979B4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hoot", "hOOt\hOOt.csproj", "{0501ECE9-1E6B-449E-B45A-018C9516BB3D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hOOt", "hOOt\hOOt.csproj", "{0501ECE9-1E6B-449E-B45A-018C9516BB3D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
