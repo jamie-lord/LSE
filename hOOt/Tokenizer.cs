@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Hoot
 {
@@ -142,8 +141,7 @@ namespace Hoot
 
         private static void addword(Dictionary<string, int> dic, string word)
         {
-            int cc = 0;
-            if (dic.TryGetValue(word, out cc))
+            if (dic.TryGetValue(word, out int cc))
                 dic[word] = ++cc;
             else
                 dic.Add(word, 1);

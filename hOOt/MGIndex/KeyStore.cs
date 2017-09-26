@@ -552,7 +552,7 @@ namespace Hoot.MGIndex
         {
             StorageItem<T> meta;
             byte[] b = _archive.ReadBytes(record, out meta);
-            isdeleted = meta.isDeleted;
+            isdeleted = meta.IsDeleted;
             return b;
         }
 

@@ -43,7 +43,7 @@ namespace Hoot
     internal class FileLogger
     {
         // Sinlgeton pattern 4 from : http://csharpindepth.com/articles/general/singleton.aspx
-        private static readonly FileLogger instance = new FileLogger();
+        private static readonly FileLogger _instance = new FileLogger();
         // Explicit static constructor to tell C# compiler
         // not to mark type as beforefieldinit
         static FileLogger()
@@ -52,7 +52,7 @@ namespace Hoot
         private FileLogger()
         {
         }
-        public static FileLogger Instance { get { return instance; } }
+        public static FileLogger Instance { get { return _instance; } }
 
         private Queue<string> _que = new Queue<string>();
         private Queue<string> _log = new Queue<string>();
@@ -62,7 +62,7 @@ namespace Hoot
         private long _lastSize = 0;
         private DateTime _lastFileDate;
         private bool _showMethodName = false;
-        private string _FilePath = "";
+        private string _filePath = "";
         private System.Timers.Timer _saveTimer;
         private int _lastLogsToKeep = 100;
         internal int _logabove = 1;
@@ -81,12 +81,12 @@ namespace Hoot
             _sizeLimit = sizelimitKB;
             _filename = filename;
             // handle folder names as well -> create dir etc.
-            _FilePath = Path.GetDirectoryName(filename);
-            if (_FilePath != "")
+            _filePath = Path.GetDirectoryName(filename);
+            if (_filePath != "")
             {
-                _FilePath = Directory.CreateDirectory(_FilePath).FullName;
-                if (_FilePath.EndsWith(Path.DirectorySeparatorChar.ToString()) == false)
-                    _FilePath += Path.DirectorySeparatorChar.ToString();
+                _filePath = Directory.CreateDirectory(_filePath).FullName;
+                if (_filePath.EndsWith(Path.DirectorySeparatorChar.ToString()) == false)
+                    _filePath += Path.DirectorySeparatorChar.ToString();
             }
             _output = new StreamWriter(filename, true);
             FileInfo fi = new FileInfo(filename);
@@ -94,12 +94,12 @@ namespace Hoot
             _lastFileDate = fi.LastWriteTime;
 
             _saveTimer = new System.Timers.Timer(500);
-            _saveTimer.Elapsed += new System.Timers.ElapsedEventHandler(_saveTimer_Elapsed);
+            _saveTimer.Elapsed += new System.Timers.ElapsedEventHandler(SaveTimerElapsed);
             _saveTimer.Enabled = true;
             _saveTimer.AutoReset = true;
         }
 
-        void _saveTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        private void SaveTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             WriteData();
         }
@@ -138,11 +138,11 @@ namespace Hoot
                                 _output.Flush();
                                 _output.Close();
                                 int count = 1;
-                                while (File.Exists(_FilePath + Path.GetFileNameWithoutExtension(_filename) + "." + count.ToString("0000")))
+                                while (File.Exists(_filePath + Path.GetFileNameWithoutExtension(_filename) + "." + count.ToString("0000")))
                                     count++;
 
                                 File.Move(_filename,
-                                    _FilePath +
+                                    _filePath +
                                     Path.GetFileNameWithoutExtension(_filename) +
                                     "." + count.ToString("0000"));
                                 _output = new StreamWriter(_filename, true);
@@ -157,17 +157,17 @@ namespace Hoot
                             _output.Flush();
                             _output.Close();
                             int count = 1;
-                            while (File.Exists(_FilePath + Path.GetFileNameWithoutExtension(_filename) + "." + count.ToString("0000")))
+                            while (File.Exists(_filePath + Path.GetFileNameWithoutExtension(_filename) + "." + count.ToString("0000")))
                             {
-                                File.Move(_FilePath + Path.GetFileNameWithoutExtension(_filename) + "." + count.ToString("0000"),
-                                   _FilePath +
+                                File.Move(_filePath + Path.GetFileNameWithoutExtension(_filename) + "." + count.ToString("0000"),
+                                   _filePath +
                                    Path.GetFileNameWithoutExtension(_filename) +
                                    "." + count.ToString("0000") +
                                    "." + _lastFileDate.ToString("yyyy-MM-dd"));
                                 count++;
                             }
                             File.Move(_filename,
-                               _FilePath +
+                               _filePath +
                                Path.GetFileNameWithoutExtension(_filename) +
                                "." + count.ToString("0000") +
                                "." + _lastFileDate.ToString("yyyy-MM-dd"));
@@ -239,9 +239,9 @@ namespace Hoot
         }
     }
 
-    internal class logger : ILog
+    internal class Logger : ILog
     {
-        public logger(Type type)
+        public Logger(Type type)
         {
             typename = type.Namespace + "." + type.Name;
         }
@@ -296,7 +296,7 @@ namespace Hoot
     {
         public static ILog GetLogger(Type obj)
         {
-            return new logger(obj);
+            return new Logger(obj);
         }
 
         public static void Configure(string filename, int sizelimitKB, bool showmethodnames)

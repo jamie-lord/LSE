@@ -8,77 +8,77 @@ namespace Hoot
 {
     internal class SafeDictionary<TKey, TValue>
     {
-        private readonly object _Padlock = new object();
-        private readonly Dictionary<TKey, TValue> _Dictionary = null;
+        private readonly object _padlock = new object();
+        private readonly Dictionary<TKey, TValue> _dictionary = null;
 
         public SafeDictionary(int capacity)
         {
-            _Dictionary = new Dictionary<TKey, TValue>(capacity);
+            _dictionary = new Dictionary<TKey, TValue>(capacity);
         }
 
         public SafeDictionary()
         {
-            _Dictionary = new Dictionary<TKey, TValue>();
+            _dictionary = new Dictionary<TKey, TValue>();
         }
 
         public bool TryGetValue(TKey key, out TValue value)
         {
-            lock (_Padlock)
-                return _Dictionary.TryGetValue(key, out value);
+            lock (_padlock)
+                return _dictionary.TryGetValue(key, out value);
         }
 
         public TValue this[TKey key]
         {
             get
             {
-                lock (_Padlock)
-                    return _Dictionary[key];
+                lock (_padlock)
+                    return _dictionary[key];
             }
             set
             {
-                lock (_Padlock)
-                    _Dictionary[key] = value;
+                lock (_padlock)
+                    _dictionary[key] = value;
             }
         }
 
         public int Count
         {
-            get { lock (_Padlock) return _Dictionary.Count; }
+            get { lock (_padlock) return _dictionary.Count; }
         }
 
         public ICollection<KeyValuePair<TKey, TValue>> GetList()
         {
-            return (ICollection<KeyValuePair<TKey, TValue>>)_Dictionary;
+            return (ICollection<KeyValuePair<TKey, TValue>>)_dictionary;
         }
 
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
-            return ((ICollection<KeyValuePair<TKey, TValue>>)_Dictionary).GetEnumerator();
+            return ((ICollection<KeyValuePair<TKey, TValue>>)_dictionary).GetEnumerator();
         }
 
         public void Add(TKey key, TValue value)
         {
-            lock (_Padlock)
+            lock (_padlock)
             {
-                if (_Dictionary.ContainsKey(key) == false)
-                    _Dictionary.Add(key, value);
+                if (_dictionary.ContainsKey(key) == false)
+                    _dictionary.Add(key, value);
             }
         }
 
         public TKey[] Keys()
         {
-            lock (_Padlock)
+            lock (_padlock)
             {
-                TKey[] keys = new TKey[_Dictionary.Keys.Count];
-                _Dictionary.Keys.CopyTo(keys, 0);
+                TKey[] keys = new TKey[_dictionary.Keys.Count];
+                _dictionary.Keys.CopyTo(keys, 0);
                 return keys;
             }
         }
 
         public bool Remove(TKey key)
         {
-            lock (_Padlock)
-                return _Dictionary.Remove(key);
+            lock (_padlock)
+                return _dictionary.Remove(key);
         }
     }
 
@@ -182,11 +182,11 @@ namespace Hoot
             int c = left.Length;
             if (c > right.Length)
                 c = right.Length;
-            return memcmp(left, right, c);
+            return _memcmp(left, right, c);
         }
 
         [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
-        private static extern int memcmp(byte[] arr1, byte[] arr2, int cnt);
+        private static extern int _memcmp(byte[] arr1, byte[] arr2, int cnt);
 
         internal static unsafe int ToInt32(byte[] value, int startIndex, bool reverse)
         {

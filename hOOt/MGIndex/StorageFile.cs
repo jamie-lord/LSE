@@ -13,13 +13,13 @@ namespace Hoot.MGIndex
 
     public class StorageItem<T>
     {
-        public T key;
-        public string typename;
-        public DateTime date = FastDateTime.Now;
-        public bool isDeleted;
-        public bool isReplicated;
-        public int dataLength;
-        public byte isCompressed; // 0 = no, 1 = MiniLZO
+        public T Key;
+        public string TypeName;
+        public DateTime Date = FastDateTime.Now;
+        public bool IsDeleted;
+        public bool IsReplicated;
+        public int DataLength;
+        public byte IsCompressed; // 0 = no, 1 = MiniLZO
     }
 
     public interface IDocStorage<T>
@@ -41,45 +41,45 @@ namespace Hoot.MGIndex
 
     internal struct SplitFile
     {
-        public long start;
-        public long uptolength;
-        public FileStream file;
+        public long Start;
+        public long UpToLength;
+        public FileStream File;
     }
 
     internal class StorageFile<T>
     {
-        FileStream _datawrite;
-        FileStream _recfilewrite;
-        FileStream _recfileread = null;
-        FileStream _dataread = null;
+        private FileStream _datawrite;
+        private FileStream _recfilewrite;
+        private FileStream _recfileread = null;
+        private FileStream _dataread = null;
 
-        private string _filename = "";
-        private string _recfilename = "";
+        private string _fileName = "";
+        private string _recFileName = "";
         private long _lastRecordNum = 0;
-        private long _lastWriteOffset = _fileheader.Length;
-        private object _readlock = new object();
+        private long _lastWriteOffset = _fileHeader.Length;
+        private object _readLock = new object();
         private bool _dirty = false;
-        IGetBytes<T> _T = null;
-        ILog _log = LogManager.GetLogger(typeof(StorageFile<T>));
+        private IGetBytes<T> _t = null;
+        private ILog _log = LogManager.GetLogger(typeof(StorageFile<T>));
         private SF_FORMAT _saveFormat = SF_FORMAT.BSON;
 
         // **** change this if storage format changed ****
-        internal static int _CurrentVersion = 2;
+        internal static int _currentVersion = 2;
 
         //private ushort _splitMegaBytes = 0; // 0 = off 
         //private bool _enableSplits = false;
         private List<SplitFile> _files = new List<SplitFile>();
-        private List<long> _uptoindexes = new List<long>();
+        private List<long> _uptoIndexes = new List<long>();
         // no splits in view mode 
-        private bool _viewmode = false;
-        private SplitFile _lastsplitfile;
+        private bool _viewMode = false;
+        private SplitFile _lastSplitFile;
 
-        public static byte[] _fileheader = { (byte)'M', (byte)'G', (byte)'D', (byte)'B',
+        public static byte[] _fileHeader = { (byte)'M', (byte)'G', (byte)'D', (byte)'B',
                                               0, // 4 -- storage file version number,
                                               0  // 5 -- not used
                                            };
-        private static string _splitfileExtension = "00000";
-        private const int _KILOBYTE = 1024;
+        private static string _splitFileExtension = "00000";
+        private const int _kilobyte = 1024;
         // record format :
         //    1 type (0 = raw no meta data, 1 = bson meta, 2 = json meta)  
         //    4 byte meta/data length, 
@@ -92,10 +92,10 @@ namespace Hoot.MGIndex
         /// <param name="filename"></param>
         public StorageFile(string filename)
         {
-            _viewmode = true;
+            _viewMode = true;
             _saveFormat = SF_FORMAT.BSON;
             // add version number
-            _fileheader[5] = (byte)_CurrentVersion;
+            _fileHeader[5] = (byte)_currentVersion;
             Initialize(filename, false);
         }
         /// <summary>
@@ -107,9 +107,9 @@ namespace Hoot.MGIndex
         public StorageFile(string filename, SF_FORMAT format, bool StorageOnlyMode)
         {
             _saveFormat = format;
-            if (StorageOnlyMode) _viewmode = true; // no file splits
+            if (StorageOnlyMode) _viewMode = true; // no file splits
             // add version number
-            _fileheader[5] = (byte)_CurrentVersion;
+            _fileHeader[5] = (byte)_currentVersion;
             Initialize(filename, StorageOnlyMode);
         }
 
@@ -120,11 +120,11 @@ namespace Hoot.MGIndex
 
         private void Initialize(string filename, bool StorageOnlyMode)
         {
-            _T = RDBDataType<T>.ByteHandler();
-            _filename = filename;
+            _t = RDBDataType<T>.ByteHandler();
+            _fileName = filename;
 
             // search for mgdat00000 extensions -> split files load
-            if (File.Exists(filename + _splitfileExtension))
+            if (File.Exists(filename + _splitFileExtension))
             {
                 LoadSplitFiles(filename);
             }
@@ -134,14 +134,14 @@ namespace Hoot.MGIndex
             else
                 _datawrite = new FileStream(filename, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
 
-            _dataread = new FileStream(_filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            _dataread = new FileStream(_fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
             if (_datawrite.Length == 0)
             {
                 // new file
-                _datawrite.Write(_fileheader, 0, _fileheader.Length);
+                _datawrite.Write(_fileHeader, 0, _fileHeader.Length);
                 _datawrite.Flush();
-                _lastWriteOffset = _fileheader.Length;
+                _lastWriteOffset = _fileHeader.Length;
             }
             else
             {
@@ -155,13 +155,13 @@ namespace Hoot.MGIndex
             if (StorageOnlyMode == false)
             {
                 // load rec pointers
-                _recfilename = filename.Substring(0, filename.LastIndexOf('.')) + ".mgrec";
-                if (File.Exists(_recfilename) == false)
-                    _recfilewrite = new FileStream(_recfilename, FileMode.CreateNew, FileAccess.Write, FileShare.ReadWrite);
+                _recFileName = filename.Substring(0, filename.LastIndexOf('.')) + ".mgrec";
+                if (File.Exists(_recFileName) == false)
+                    _recfilewrite = new FileStream(_recFileName, FileMode.CreateNew, FileAccess.Write, FileShare.ReadWrite);
                 else
-                    _recfilewrite = new FileStream(_recfilename, FileMode.Open, FileAccess.Write, FileShare.ReadWrite);
+                    _recfilewrite = new FileStream(_recFileName, FileMode.Open, FileAccess.Write, FileShare.ReadWrite);
 
-                _recfileread = new FileStream(_recfilename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                _recfileread = new FileStream(_recFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
                 _lastRecordNum = (int)(_recfilewrite.Length / 8);
                 _recfilewrite.Seek(0L, SeekOrigin.End);
@@ -174,25 +174,25 @@ namespace Hoot.MGIndex
             _lastWriteOffset = 0;
             for (int i = 0; ; i++)
             {
-                string _filename = filename + i.ToString(_splitfileExtension);
+                string _filename = filename + i.ToString(_splitFileExtension);
                 if (File.Exists(_filename) == false)
                     break;
                 FileStream file = new FileStream(_filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 SplitFile sf = new SplitFile();
-                sf.start = _lastWriteOffset;
+                sf.Start = _lastWriteOffset;
                 _lastWriteOffset += file.Length;
-                sf.file = file;
-                sf.uptolength = _lastWriteOffset;
+                sf.File = file;
+                sf.UpToLength = _lastWriteOffset;
                 _files.Add(sf);
-                _uptoindexes.Add(sf.uptolength);
+                _uptoIndexes.Add(sf.UpToLength);
             }
-            _lastsplitfile = _files[_files.Count - 1];
+            _lastSplitFile = _files[_files.Count - 1];
             _log.Debug("Number of split files = " + _files.Count);
         }
 
         public static int GetStorageFileHeaderVersion(string filename)
         {
-            string fn = filename + _splitfileExtension; // if split files -> load the header from the first file -> mgdat00000
+            string fn = filename + _splitFileExtension; // if split files -> load the header from the first file -> mgdat00000
             if (File.Exists(fn) == false)
                 fn = filename; // else use the mgdat file 
 
@@ -200,12 +200,12 @@ namespace Hoot.MGIndex
             {
                 var fs = new FileStream(fn, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
                 fs.Seek(0L, SeekOrigin.Begin);
-                byte[] b = new byte[_fileheader.Length];
-                fs.Read(b, 0, _fileheader.Length);
+                byte[] b = new byte[_fileHeader.Length];
+                fs.Read(b, 0, _fileHeader.Length);
                 fs.Close();
                 return b[5];
             }
-            return _CurrentVersion;
+            return _currentVersion;
         }
 
         public int Count()
@@ -221,8 +221,8 @@ namespace Hoot.MGIndex
         public long Delete(T key)
         {
             StorageItem<T> meta = new StorageItem<T>();
-            meta.key = key;
-            meta.isDeleted = true;
+            meta.Key = key;
+            meta.IsDeleted = true;
 
             return internalWriteData(meta, null, false);
         }
@@ -230,9 +230,9 @@ namespace Hoot.MGIndex
         public long DeleteReplicated(T key)
         {
             StorageItem<T> meta = new StorageItem<T>();
-            meta.key = key;
-            meta.isReplicated = true;
-            meta.isDeleted = true;
+            meta.Key = key;
+            meta.IsReplicated = true;
+            meta.IsDeleted = true;
 
             return internalWriteData(meta, null, false);
         }
@@ -240,16 +240,16 @@ namespace Hoot.MGIndex
         public long WriteObject(T key, object obj)
         {
             StorageItem<T> meta = new StorageItem<T>();
-            meta.key = key;
-            meta.typename = fastJSON.Reflection.Instance.GetTypeAssemblyName(obj.GetType());
+            meta.Key = key;
+            meta.TypeName = fastJSON.Reflection.Instance.GetTypeAssemblyName(obj.GetType());
             byte[] data;
             if (_saveFormat == SF_FORMAT.BSON)
                 data = fastBinaryJSON.BJSON.ToBJSON(obj);
             else
                 data = Helper.GetBytes(fastJSON.JSON.ToJSON(obj));
-            if (data.Length > (int)Global.CompressDocumentOverKiloBytes * _KILOBYTE)
+            if (data.Length > (int)Global.CompressDocumentOverKiloBytes * _kilobyte)
             {
-                meta.isCompressed = 1;
+                meta.IsCompressed = 1;
                 data = MiniLZO.Compress(data); //MiniLZO
             }
             return internalWriteData(meta, data, false);
@@ -258,17 +258,17 @@ namespace Hoot.MGIndex
         public long WriteReplicationObject(T key, object obj)
         {
             StorageItem<T> meta = new StorageItem<T>();
-            meta.key = key;
-            meta.isReplicated = true;
-            meta.typename = fastJSON.Reflection.Instance.GetTypeAssemblyName(obj.GetType());
+            meta.Key = key;
+            meta.IsReplicated = true;
+            meta.TypeName = fastJSON.Reflection.Instance.GetTypeAssemblyName(obj.GetType());
             byte[] data;
             if (_saveFormat == SF_FORMAT.BSON)
                 data = fastBinaryJSON.BJSON.ToBJSON(obj);
             else
                 data = Helper.GetBytes(fastJSON.JSON.ToJSON(obj));
-            if (data.Length > (int)Global.CompressDocumentOverKiloBytes * _KILOBYTE)
+            if (data.Length > (int)Global.CompressDocumentOverKiloBytes * _kilobyte)
             {
-                meta.isCompressed = 1;
+                meta.IsCompressed = 1;
                 data = MiniLZO.Compress(data);
             }
             return internalWriteData(meta, data, false);
@@ -277,11 +277,11 @@ namespace Hoot.MGIndex
         public long WriteData(T key, byte[] data)
         {
             StorageItem<T> meta = new StorageItem<T>();
-            meta.key = key;
+            meta.Key = key;
 
-            if (data.Length > (int)Global.CompressDocumentOverKiloBytes * _KILOBYTE)
+            if (data.Length > (int)Global.CompressDocumentOverKiloBytes * _kilobyte)
             {
-                meta.isCompressed = 1;
+                meta.IsCompressed = 1;
                 data = MiniLZO.Compress(data);
             }
 
@@ -323,7 +323,7 @@ namespace Hoot.MGIndex
             if (recnum >= _lastRecordNum)
                 return null;
 
-            lock (_readlock)
+            lock (_readLock)
             {
                 long offset = ComputeOffset(recnum);
                 _dataread.Seek(offset, System.IO.SeekOrigin.Begin);
@@ -346,7 +346,7 @@ namespace Hoot.MGIndex
         public void Shutdown()
         {
             if (_files.Count > 0)
-                _files.ForEach(s => FlushClose(s.file));
+                _files.ForEach(s => FlushClose(s.File));
 
             FlushClose(_dataread);
             FlushClose(_recfileread);
@@ -370,7 +370,7 @@ namespace Hoot.MGIndex
         {
             if (rowid >= _lastRecordNum)
                 return null;
-            lock (_readlock)
+            lock (_readLock)
             {
                 int metalen = 0;
                 long off = ComputeOffset(rowid);
@@ -384,12 +384,12 @@ namespace Hoot.MGIndex
 
         private long internalWriteData(StorageItem<T> meta, byte[] data, bool raw)
         {
-            lock (_readlock)
+            lock (_readLock)
             {
                 _dirty = true;
                 // seek end of file
                 long offset = _lastWriteOffset;
-                if (_viewmode == false && Global.SplitStorageFilesMegaBytes > 0)
+                if (_viewMode == false && Global.SplitStorageFilesMegaBytes > 0)
                 {
                     // current file size > _splitMegaBytes --> new file
                     if (offset > (long)Global.SplitStorageFilesMegaBytes * 1024 * 1024)
@@ -399,7 +399,7 @@ namespace Hoot.MGIndex
                 if (raw == false)
                 {
                     if (data != null)
-                        meta.dataLength = data.Length;
+                        meta.DataLength = data.Length;
                     byte[] metabytes = fastBinaryJSON.BJSON.ToBJSON(meta, new fastBinaryJSON.BJSONParameters { UseExtensions = false });
 
                     // write header info
@@ -447,22 +447,22 @@ namespace Hoot.MGIndex
             FlushClose(_dataread);
             long start = 0;
             if (i > 0)
-                start = _lastsplitfile.uptolength; // last file offset
+                start = _lastSplitFile.UpToLength; // last file offset
             // rename mgdat to mgdat0000n
-            File.Move(_filename, _filename + i.ToString(_splitfileExtension));
-            FileStream file = new FileStream(_filename + i.ToString(_splitfileExtension), FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            File.Move(_fileName, _fileName + i.ToString(_splitFileExtension));
+            FileStream file = new FileStream(_fileName + i.ToString(_splitFileExtension), FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             SplitFile sf = new SplitFile();
-            sf.start = start;
-            sf.uptolength = _lastWriteOffset;
-            sf.file = file;
+            sf.Start = start;
+            sf.UpToLength = _lastWriteOffset;
+            sf.File = file;
             _files.Add(sf);
 
-            _uptoindexes.Add(sf.uptolength);
+            _uptoIndexes.Add(sf.UpToLength);
 
-            _lastsplitfile = sf;
+            _lastSplitFile = sf;
             // new mgdat file
-            _datawrite = new FileStream(_filename, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.ReadWrite);
-            _dataread = new FileStream(_filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            _datawrite = new FileStream(_fileName, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.ReadWrite);
+            _dataread = new FileStream(_fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             _log.Debug("New storage file created, count = " + _files.Count);
         }
 
@@ -471,13 +471,13 @@ namespace Hoot.MGIndex
             meta = null;
             if (recnum >= _lastRecordNum)
                 return null;
-            lock (_readlock)
+            lock (_readLock)
             {
                 long off = ComputeOffset(recnum);
                 FileStream fs = GetReadFileStreamWithSeek(off);
                 byte[] data = internalReadBytes(fs, out meta);
 
-                if (meta.isCompressed > 0)
+                if (meta.IsCompressed > 0)
                     data = MiniLZO.Decompress(data);
 
                 return data;
@@ -508,10 +508,10 @@ namespace Hoot.MGIndex
             meta = ReadMetaData(fs, out metalen);
             if (meta != null)
             {
-                if (meta.isDeleted == false)
+                if (meta.IsDeleted == false)
                 {
-                    byte[] data = new byte[meta.dataLength];
-                    fs.Read(data, 0, meta.dataLength);
+                    byte[] data = new byte[meta.DataLength];
+                    fs.Read(data, 0, meta.DataLength);
                     return data;
                 }
             }
@@ -564,7 +564,7 @@ namespace Hoot.MGIndex
 
         internal T GetKey(long recnum, out bool deleted)
         {
-            lock (_readlock)
+            lock (_readLock)
             {
                 deleted = false;
                 long off = ComputeOffset(recnum);
@@ -572,8 +572,8 @@ namespace Hoot.MGIndex
 
                 int metalen = 0;
                 StorageItem<T> meta = ReadMetaData(fs, out metalen);
-                deleted = meta.isDeleted;
-                return meta.key;
+                deleted = meta.IsDeleted;
+                return meta.Key;
             }
         }
 
@@ -582,7 +582,7 @@ namespace Hoot.MGIndex
             FileStream fs;
             bool inthefiles = false;
             // copy data here
-            lock (_readlock)
+            lock (_readLock)
             {
                 long off = ComputeOffset(startrecord);
                 fs = GetReadFileStreamWithSeek(off);
@@ -599,16 +599,16 @@ namespace Hoot.MGIndex
                 i++; // next file stream
                 for (int j = i; j < _files.Count; j++)
                 {
-                    lock (_readlock)
+                    lock (_readLock)
                     {
-                        fs = _files[j].file;
+                        fs = _files[j].File;
                         fs.Seek(0L, SeekOrigin.Begin);
                         Pump(fs, storageFile._datawrite);
                     }
                 }
 
                 // pump the current mgdat
-                lock (_readlock)
+                lock (_readLock)
                 {
                     _dataread.Seek(0L, SeekOrigin.Begin);
                     Pump(_dataread, storageFile._datawrite);
@@ -645,12 +645,12 @@ namespace Hoot.MGIndex
             //    yield return sd;
             //}
 
-            long offset = _fileheader.Length;// start; // skip header
+            long offset = _fileHeader.Length;// start; // skip header
             long size = _dataread.Length;
             while (offset < size)
             {
                 StorageData<T> sd = new StorageData<T>();
-                lock (_readlock)
+                lock (_readLock)
                 {
                     _dataread.Seek(offset, SeekOrigin.Begin);
                     int metalen = 0;
@@ -658,13 +658,13 @@ namespace Hoot.MGIndex
                     offset += metalen;
 
                     sd.meta = meta;
-                    if (meta.dataLength > 0)
+                    if (meta.DataLength > 0)
                     {
-                        byte[] data = new byte[meta.dataLength];
-                        _dataread.Read(data, 0, meta.dataLength);
+                        byte[] data = new byte[meta.DataLength];
+                        _dataread.Read(data, 0, meta.DataLength);
                         sd.data = data;
                     }
-                    offset += meta.dataLength;
+                    offset += meta.DataLength;
                 }
                 yield return sd;
             }
@@ -676,16 +676,16 @@ namespace Hoot.MGIndex
             // search split _files for offset and compute fileoffset in the file
             if (_files.Count > 0) // we have splits
             {
-                if (offset < _lastsplitfile.uptolength) // offset is in the list
+                if (offset < _lastSplitFile.UpToLength) // offset is in the list
                 {
                     int i = binarysearch(offset);
                     var f = _files[i];
-                    fileoffset -= f.start; // offset in the file 
-                    f.file.Seek(fileoffset, SeekOrigin.Begin);
-                    return f.file;
+                    fileoffset -= f.Start; // offset in the file 
+                    f.File.Seek(fileoffset, SeekOrigin.Begin);
+                    return f.File;
                 }
                 else
-                    fileoffset -= _lastsplitfile.uptolength; // offset in the mgdat file
+                    fileoffset -= _lastSplitFile.UpToLength; // offset in the mgdat file
             }
 
             // seek to position in file 
@@ -704,7 +704,7 @@ namespace Hoot.MGIndex
             while (low <= high)
             {
                 midpoint = low + (high - low) / 2;
-                long k = _uptoindexes[midpoint];
+                long k = _uptoIndexes[midpoint];
                 // check to see if value is equal to item in array
                 if (offset == k)
                     return midpoint + 1;

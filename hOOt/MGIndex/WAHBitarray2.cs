@@ -63,8 +63,7 @@ namespace Hoot.MGIndex
             {
                 if (_state == TYPE.Indexes)
                 {
-                    bool b = false;
-                    var f = _offsets.TryGetValue((uint)index, out b);
+                    var f = _offsets.TryGetValue((uint)index, out bool b);
                     if (f)
                         return b;
                     else
@@ -74,7 +73,7 @@ namespace Hoot.MGIndex
 
                 Resize(index);
 
-                return internalGet(index);
+                return InternalGet(index);
             }
         }
 
@@ -152,9 +151,7 @@ namespace Hoot.MGIndex
         {
             lock (_lock)
             {
-                uint[] left;
-                uint[] right;
-                prelogic(op, out left, out right);
+                PreLogic(op, out uint[] left, out uint[] right);
 
                 for (int i = 0; i < left.Length; i++)
                     left[i] &= right[i];
@@ -167,9 +164,7 @@ namespace Hoot.MGIndex
         {
             lock (_lock)
             {
-                uint[] left;
-                uint[] right;
-                prelogic(op, out left, out right);
+                PreLogic(op, out uint[] left, out uint[] right);
 
                 for (int i = 0; i < left.Length; i++)
                     left[i] &= ~right[i];
@@ -182,9 +177,7 @@ namespace Hoot.MGIndex
         {
             lock (_lock)
             {
-                uint[] left;
-                uint[] right;
-                prelogic(op, out left, out right);
+                PreLogic(op, out uint[] left, out uint[] right);
 
                 for (int i = 0; i < left.Length; i++)
                     left[i] |= right[i];
@@ -225,7 +218,7 @@ namespace Hoot.MGIndex
             {
                 uint[] left;
                 uint[] right;
-                prelogic(op, out left, out right);
+                PreLogic(op, out left, out right);
 
                 for (int i = 0; i < left.Length; i++)
                     left[i] ^= right[i];
@@ -327,7 +320,7 @@ namespace Hoot.MGIndex
                     {
                         for (int j = 0; j < 32; j++)
                         {
-                            bool b = internalGet((i << 5) + j);
+                            bool b = InternalGet((i << 5) + j);
                             if (b == true)// ones)
                                 yield return (i << 5) + j;
                         }
@@ -349,11 +342,11 @@ namespace Hoot.MGIndex
             return k;
         }
 
-        private void prelogic(WAHBitArray op, out uint[] left, out uint[] right)
+        private void PreLogic(WAHBitArray op, out uint[] left, out uint[] right)
         {
-            this.CheckBitArray();
+            CheckBitArray();
 
-            left = this.GetBitArray();
+            left = GetBitArray();
             right = op.GetBitArray();
             int ic = left.Length;
             int uc = right.Length;
@@ -469,7 +462,7 @@ namespace Hoot.MGIndex
                 _uncompressed[pointer] &= ~mask;
         }
 
-        private bool internalGet(int index)
+        private bool InternalGet(int index)
         {
             int pointer = index >> 5;
             uint mask = (uint)1 << (31 - // high order bit get

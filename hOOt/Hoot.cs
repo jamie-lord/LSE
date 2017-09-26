@@ -11,23 +11,23 @@ namespace Hoot
     {
         public Hoot(string IndexPath, string FileName, bool DocMode)
         {
-            _Path = IndexPath;
-            _FileName = FileName;
+            _path = IndexPath;
+            _fileName = FileName;
             _docMode = DocMode;
-            if (_Path.EndsWith(Path.DirectorySeparatorChar.ToString()) == false) _Path += Path.DirectorySeparatorChar;
+            if (_path.EndsWith(Path.DirectorySeparatorChar.ToString()) == false) _path += Path.DirectorySeparatorChar;
             Directory.CreateDirectory(IndexPath);
 
             _log.Debug("Starting hOOt....");
-            _log.Debug("Storage Folder = " + _Path);
+            _log.Debug("Storage Folder = " + _path);
 
             if (DocMode)
             {
-                _docs = new KeyStoreString(_Path + "files.docs", false);
+                _docs = new KeyStoreString(_path + "files.docs", false);
                 // read deleted
-                _deleted = new BoolIndex(_Path, "_deleted", ".hoot");
+                _deleted = new BoolIndex(_path, "_deleted", ".hoot");
                 _lastDocNum = (int)_docs.Count();
             }
-            _bitmaps = new BitmapIndex(_Path, _FileName + "_hoot.bmp");
+            _bitmaps = new BitmapIndex(_path, _fileName + "_hoot.bmp");
             // read words
             LoadWords();
         }
@@ -38,28 +38,28 @@ namespace Hoot
         private BoolIndex _deleted;
         private ILog _log = LogManager.GetLogger(typeof(Hoot));
         private int _lastDocNum = 0;
-        private string _FileName = "words";
-        private string _Path = "";
+        private string _fileName = "words";
+        private string _path = "";
         private KeyStoreString _docs;
         private bool _docMode = false;
-        private bool _wordschanged = false;
+        private bool _wordsChanged = false;
 
         public string[] Words
         {
-            get { checkloaded(); return _words.Keys(); }
+            get { CheckLoaded(); return _words.Keys(); }
         }
 
         public int WordCount
         {
-            get { checkloaded(); return _words.Count; }
+            get { CheckLoaded(); return _words.Count; }
         }
 
         public int DocumentCount
         {
-            get { checkloaded(); return _lastDocNum - (int)_deleted.GetBits().CountOnes(); }
+            get { CheckLoaded(); return _lastDocNum - (int)_deleted.GetBits().CountOnes(); }
         }
 
-        public string IndexPath { get { return _Path; } }
+        public string IndexPath { get { return _path; } }
 
         public void Save()
         {
@@ -69,19 +69,19 @@ namespace Hoot
 
         public void Index(int recordnumber, string text)
         {
-            checkloaded();
+            CheckLoaded();
             AddtoIndex(recordnumber, text);
         }
 
         public WAHBitArray Query(string filter, int maxsize)
         {
-            checkloaded();
+            CheckLoaded();
             return ExecutionPlan(filter, maxsize);
         }
 
         public int Index(Document doc, bool deleteold)
         {
-            checkloaded();
+            CheckLoaded();
             _log.Info("indexing doc : " + doc.FileName);
             DateTime dt = FastDateTime.Now;
 
@@ -107,7 +107,7 @@ namespace Hoot
 
         public IEnumerable<int> FindRows(string filter)
         {
-            checkloaded();
+            CheckLoaded();
             WAHBitArray bits = ExecutionPlan(filter, _docs.RecordCount());
             // enumerate records
             return bits.GetBitIndexes();
@@ -115,7 +115,7 @@ namespace Hoot
 
         public IEnumerable<T> FindDocuments<T>(string filter)
         {
-            checkloaded();
+            CheckLoaded();
             WAHBitArray bits = ExecutionPlan(filter, _docs.RecordCount());
             // enumerate documents
             foreach (int i in bits.GetBitIndexes())
@@ -131,7 +131,7 @@ namespace Hoot
 
         public IEnumerable<string> FindDocumentFileNames(string filter)
         {
-            checkloaded();
+            CheckLoaded();
             WAHBitArray bits = ExecutionPlan(filter, _docs.RecordCount());
             // enumerate documents
             foreach (int i in bits.GetBitIndexes())
@@ -166,8 +166,7 @@ namespace Hoot
 
         public bool IsIndexed(string filename)
         {
-            byte[] b;
-            return _docs.Get(filename.ToLower(), out b);
+            return _docs.Get(filename.ToLower(), out byte[] b);
         }
 
         public void OptimizeIndex()
@@ -182,9 +181,9 @@ namespace Hoot
 
         #region [  P R I V A T E   M E T H O D S  ]
 
-        private void checkloaded()
+        private void CheckLoaded()
         {
-            if (_wordschanged == false)
+            if (_wordsChanged == false)
             {
                 LoadWords();
             }
@@ -318,13 +317,13 @@ namespace Hoot
             if (_bitmaps != null)
                 _bitmaps.Commit(false);
 
-            if (_words != null && _wordschanged == true)
+            if (_words != null && _wordsChanged == true)
             {
                 MemoryStream ms = new MemoryStream();
                 BinaryWriter bw = new BinaryWriter(ms, Encoding.UTF8);
 
                 // save words and bitmaps
-                using (FileStream words = new FileStream(_Path + _FileName + ".words", FileMode.Create))
+                using (FileStream words = new FileStream(_path + _fileName + ".words", FileMode.Create))
                 {
                     var keys = _words.Keys();
                     int c = keys.Length;
@@ -358,10 +357,10 @@ namespace Hoot
                 if (_words == null)
                     _words = //new SafeSortedList<string, int>();
                         new SafeDictionary<string, int>();
-                if (File.Exists(_Path + _FileName + ".words") == false)
+                if (File.Exists(_path + _fileName + ".words") == false)
                     return;
                 // load words
-                byte[] b = File.ReadAllBytes(_Path + _FileName + ".words");
+                byte[] b = File.ReadAllBytes(_path + _fileName + ".words");
                 if (b.Length == 0)
                     return;
                 MemoryStream ms = new MemoryStream(b);
@@ -378,7 +377,7 @@ namespace Hoot
                     catch { s = ""; }
                 }
                 _log.Debug("Word Count = " + _words.Count);
-                _wordschanged = true;
+                _wordsChanged = true;
             }
         }
 
@@ -419,7 +418,7 @@ namespace Hoot
                     _words.Add(key, bmp);
                 }
             }
-            _wordschanged = true;
+            _wordsChanged = true;
         }
 
 

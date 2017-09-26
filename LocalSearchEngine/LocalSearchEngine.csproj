@@ -10,7 +10,8 @@
     <PackageReference Include="LiteDB" Version="3.1.4" />
     <PackageReference Include="AbotCore" Version="0.1.13-beta" />
   </ItemGroup>
+
   <ItemGroup>
-    <ProjectReference Include="..\hOOt\hOOt.csproj" />
+    <ProjectReference Include="..\Hoot\Hoot.csproj" />
   </ItemGroup>
 </Project>

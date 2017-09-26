@@ -1,9 +1,10 @@
-
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LocalSearchEngine", "LocalSearchEngine\LocalSearchEngine.csproj", "{97DFDF44-1D0E-465D-9B5E-4E92DA3979B4}"
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.16
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LocalSearchEngine", "LocalSearchEngine\LocalSearchEngine.csproj", "{97DFDF44-1D0E-465D-9B5E-4E92DA3979B4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hOOt", "hOOt\hOOt.csproj", "{0501ECE9-1E6B-449E-B45A-018C9516BB3D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hoot", "Hoot\Hoot.csproj", "{0501ECE9-1E6B-449E-B45A-018C9516BB3D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,5 +20,11 @@ Global
 		{0501ECE9-1E6B-449E-B45A-018C9516BB3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0501ECE9-1E6B-449E-B45A-018C9516BB3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0501ECE9-1E6B-449E-B45A-018C9516BB3D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {56230C9B-D707-4BBB-ACBC-168EA2F3BABD}
 	EndGlobalSection
 EndGlobal
