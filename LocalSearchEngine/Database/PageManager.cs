@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using LiteDB;
@@ -7,9 +8,9 @@ namespace LocalSearchEngine
 {
     public class PageManager : IDisposable
     {
-        private static string _workingDir = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+        private static string _workingDir = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + "/Data";
 
-        private readonly LiteDatabase _db = new LiteDatabase($"{_workingDir}/LSE.db");
+        private readonly LiteDatabase _db;
 
         private LiteCollection<CrawledPage> _crawledPages;
 
@@ -17,6 +18,9 @@ namespace LocalSearchEngine
 
         public PageManager()
         {
+            Directory.CreateDirectory(_workingDir);
+            _db = new LiteDatabase($"{_workingDir}/LSE.db");
+
             _crawledPages = _db.GetCollection<CrawledPage>();
             _crawledPages.EnsureIndex(x => x.Uri);
 
@@ -29,9 +33,19 @@ namespace LocalSearchEngine
             _crawledPages.Upsert(page);
         }
 
+        public void AddCrawledPages(IEnumerable<CrawledPage> pages)
+        {
+            _crawledPages.Upsert(pages);
+        }
+
         public void AddNewPage(NewPage page)
         {
             _newPages.Upsert(page);
+        }
+
+        public void AddNewPages(IEnumerable<NewPage> pages)
+        {
+            _newPages.Upsert(pages);
         }
 
         public NewPage NextToCrawl()

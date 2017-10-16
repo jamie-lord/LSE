@@ -14,4 +14,11 @@
   <ItemGroup>
     <ProjectReference Include="..\Hoot\Hoot.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Crawler\" />
+    <Folder Include="Proxy\" />
+    <Folder Include="Indexer\" />
+    <Folder Include="Database\" />
+    <Folder Include="Database\Models\" />
+  </ItemGroup>
 </Project>

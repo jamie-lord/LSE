@@ -12,8 +12,8 @@ namespace LocalSearchEngine
         {
             CrawlTimeoutSeconds = 0,
             HttpRequestTimeoutInSeconds = 15,
-            MinRetryDelayInMilliseconds = 1000,
-            MaxConcurrentThreads = 10,
+            MinRetryDelayInMilliseconds = 200,
+            MaxConcurrentThreads = 25,
             MaxPagesToCrawl = 0,
             IsExternalPageCrawlingEnabled = true,
             IsRespectRobotsDotTextEnabled = true,
@@ -22,9 +22,9 @@ namespace LocalSearchEngine
 
         private PoliteWebCrawler _crawler;
 
-        public ConcurrentQueue<CrawledPage> CrawledPages = new ConcurrentQueue<CrawledPage>();
+        private ConcurrentQueue<CrawledPage> _crawledPages = new ConcurrentQueue<CrawledPage>();
 
-        public ConcurrentQueue<NewPage> NewPages = new ConcurrentQueue<NewPage>();
+        private ConcurrentQueue<NewPage> _newPages = new ConcurrentQueue<NewPage>();
 
         public Crawler()
         {
@@ -32,21 +32,19 @@ namespace LocalSearchEngine
 
             _crawler.PageCrawlStartingAsync += ProcessPageCrawlStarting;
             _crawler.PageCrawlCompletedAsync += ProcessPageCrawlCompleted;
-            _crawler.PageCrawlDisallowedAsync += PageCrawlDisallowed;
-            _crawler.PageLinksCrawlDisallowedAsync += PageLinksCrawlDisallowed;
+            //_crawler.PageCrawlDisallowedAsync += PageCrawlDisallowed;
+            //_crawler.PageLinksCrawlDisallowedAsync += PageLinksCrawlDisallowed;
         }
 
-        private bool _crawling = false;
-
-        public void Crawl(Uri uri)
+        public (ConcurrentQueue<CrawledPage>, ConcurrentQueue<NewPage>) Crawl(Uri uri)
         {
-            if (!_crawling)
-            {
-                _crawling = true;
-                var task = _crawler.CrawlAsync(uri);
-                task.Wait();
-                _crawling = false;
-            }
+            _crawledPages = new ConcurrentQueue<CrawledPage>();
+            _newPages = new ConcurrentQueue<NewPage>();
+
+            var task = _crawler.CrawlAsync(uri);
+            task.Wait();
+
+            return (_crawledPages, _newPages);
         }
 
         private void ProcessPageCrawlStarting(object sender, PageCrawlStartingArgs e)
@@ -75,7 +73,6 @@ namespace LocalSearchEngine
                 }
 
                 var htmlAgilityPackDocument = crawledPage.HtmlDocument; //Html Agility Pack parser
-                var angleSharpHtmlDocument = crawledPage.AngleSharpHtmlDocument; //AngleSharp parser
 
                 var page = new CrawledPage
                 {
@@ -84,11 +81,11 @@ namespace LocalSearchEngine
                     Content = crawledPage.Content.Text
                 };
 
-                CrawledPages.Enqueue(page);
+                _crawledPages.Enqueue(page);
 
                 foreach (var link in crawledPage.ParsedLinks)
                 {
-                    NewPages.Enqueue(new NewPage { Uri = link, Added = crawledPage.RequestStarted });
+                    _newPages.Enqueue(new NewPage { Uri = link, Added = crawledPage.RequestStarted, FoundOn = crawledPage.Uri });
                 }
             }
         }
@@ -97,12 +94,16 @@ namespace LocalSearchEngine
         {
             Abot.Poco.CrawledPage crawledPage = e.CrawledPage;
             Console.WriteLine("Did not crawl the links on page {0} due to {1}", crawledPage.Uri.AbsoluteUri, e.DisallowedReason);
+
+            // TODO: Store uris of pages where link crawls are disallowed
         }
 
         private void PageCrawlDisallowed(object sender, PageCrawlDisallowedArgs e)
         {
             PageToCrawl pageToCrawl = e.PageToCrawl;
             Console.WriteLine("Did not crawl page {0} due to {1}", pageToCrawl.Uri.AbsoluteUri, e.DisallowedReason);
+
+            // TODO: Store pages where crawling is disallowed
         }
     }
 }
