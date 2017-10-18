@@ -19,11 +19,13 @@ namespace LocalSearchEngine
                 if (newPage != null)
                 {
                     var crawler = new Crawler();
-                    var result = crawler.Crawl(newPage.Uri);
+                    var result = crawler.CrawlAsync(newPage.Uri);
+                    result.Wait();
+
                     _pageManager.RemoveNewPage(newPage);
 
-                    _pageManager.AddCrawledPages(result.Item1);
-                    _pageManager.AddNewPages(result.Item2);
+                    _pageManager.AddCrawledPage(result.Result.Item1);
+                    _pageManager.AddNewPages(result.Result.Item2);
                 }
                 else
                 {

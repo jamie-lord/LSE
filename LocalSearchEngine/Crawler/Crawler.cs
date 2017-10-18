@@ -1,109 +1,81 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Net;
-using Abot.Crawler;
-using Abot.Poco;
+using System.Net.Http;
+using System.Threading.Tasks;
+using HtmlAgilityPack;
 
 namespace LocalSearchEngine
 {
     public class Crawler
     {
-        private readonly CrawlConfiguration _crawlConfig = new CrawlConfiguration
-        {
-            CrawlTimeoutSeconds = 0,
-            HttpRequestTimeoutInSeconds = 15,
-            MinRetryDelayInMilliseconds = 200,
-            MaxConcurrentThreads = 25,
-            MaxPagesToCrawl = 0,
-            IsExternalPageCrawlingEnabled = true,
-            IsRespectRobotsDotTextEnabled = true,
-            UserAgentString = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.91 Safari/537.36 Vivaldi/1.93.955.36"
-        };
-
-        private PoliteWebCrawler _crawler;
-
-        private ConcurrentQueue<CrawledPage> _crawledPages = new ConcurrentQueue<CrawledPage>();
-
-        private ConcurrentQueue<NewPage> _newPages = new ConcurrentQueue<NewPage>();
+        private ConcurrentBag<NewPage> _newPages = new ConcurrentBag<NewPage>();
 
         public Crawler()
         {
-            _crawler = new PoliteWebCrawler(_crawlConfig);
-
-            _crawler.PageCrawlStartingAsync += ProcessPageCrawlStarting;
-            _crawler.PageCrawlCompletedAsync += ProcessPageCrawlCompleted;
-            //_crawler.PageCrawlDisallowedAsync += PageCrawlDisallowed;
-            //_crawler.PageLinksCrawlDisallowedAsync += PageLinksCrawlDisallowed;
         }
 
-        public (ConcurrentQueue<CrawledPage>, ConcurrentQueue<NewPage>) Crawl(Uri uri)
+        public async Task<(CrawledPage, ConcurrentBag<NewPage>)> CrawlAsync(Uri uri)
         {
-            _crawledPages = new ConcurrentQueue<CrawledPage>();
-            _newPages = new ConcurrentQueue<NewPage>();
+            _newPages = new ConcurrentBag<NewPage>();
 
-            var task = _crawler.CrawlAsync(uri);
-            task.Wait();
+            var crawledPage = new CrawledPage();
 
-            return (_crawledPages, _newPages);
-        }
+            HttpClient client = new HttpClient();
 
-        private void ProcessPageCrawlStarting(object sender, PageCrawlStartingArgs e)
-        {
-            PageToCrawl pageToCrawl = e.PageToCrawl;
-            Console.WriteLine("About to crawl link {0} which was found on page {1}", pageToCrawl.Uri.AbsoluteUri, pageToCrawl.ParentUri.AbsoluteUri);
-        }
-
-        private void ProcessPageCrawlCompleted(object sender, PageCrawlCompletedArgs e)
-        {
-            Abot.Poco.CrawledPage crawledPage = e.CrawledPage;
-
-            if (crawledPage.HttpRequestException != null || crawledPage.HttpWebResponse.StatusCode != HttpStatusCode.OK)
+            using (var response = await client.GetAsync(uri))
             {
-                Console.WriteLine("Crawl of page failed {0}", crawledPage.Uri.AbsoluteUri);
-                return;
-            }
-            else
-            {
-                Console.WriteLine("Crawl of page succeeded {0}", crawledPage.Uri.AbsoluteUri);
-
-                if (string.IsNullOrEmpty(crawledPage.Content.Text))
+                using (var content = response.Content)
                 {
-                    Console.WriteLine("Page had no content {0}", crawledPage.Uri.AbsoluteUri);
-                    return;
-                }
+                    var result = await content.ReadAsStringAsync();
+                    var document = new HtmlDocument();
+                    document.LoadHtml(result);
 
-                var htmlAgilityPackDocument = crawledPage.HtmlDocument; //Html Agility Pack parser
-
-                var page = new CrawledPage
-                {
-                    LastCheck = crawledPage.RequestStarted,
-                    Uri = crawledPage.Uri,
-                    Content = crawledPage.Content.Text
-                };
-
-                _crawledPages.Enqueue(page);
-
-                foreach (var link in crawledPage.ParsedLinks)
-                {
-                    _newPages.Enqueue(new NewPage { Uri = link, Added = crawledPage.RequestStarted, FoundOn = crawledPage.Uri });
+                    //crawledPage.LastCheck = 
                 }
             }
+
+            return (crawledPage, _newPages);
         }
 
-        private void PageLinksCrawlDisallowed(object sender, PageLinksCrawlDisallowedArgs e)
-        {
-            Abot.Poco.CrawledPage crawledPage = e.CrawledPage;
-            Console.WriteLine("Did not crawl the links on page {0} due to {1}", crawledPage.Uri.AbsoluteUri, e.DisallowedReason);
+        //private void ProcessPageCrawlStarting(object sender, PageCrawlStartingArgs e)
+        //{
+        //    PageToCrawl pageToCrawl = e.PageToCrawl;
+        //    Console.WriteLine("About to crawl link {0} which was found on page {1}", pageToCrawl.Uri.AbsoluteUri, pageToCrawl.ParentUri.AbsoluteUri);
+        //}
 
-            // TODO: Store uris of pages where link crawls are disallowed
-        }
+        //private void ProcessPageCrawlCompleted(object sender, PageCrawlCompletedArgs e)
+        //{
+        //    if (e.CrawledPage.HttpRequestException != null || e.CrawledPage.HttpWebResponse.StatusCode != HttpStatusCode.OK)
+        //    {
+        //        Console.WriteLine("Crawl of page failed {0}", e.CrawledPage.Uri.AbsoluteUri);
+        //        return;
+        //    }
+        //    else
+        //    {
+        //        Console.WriteLine("Crawl of page succeeded {0}", e.CrawledPage.Uri.AbsoluteUri);
 
-        private void PageCrawlDisallowed(object sender, PageCrawlDisallowedArgs e)
-        {
-            PageToCrawl pageToCrawl = e.PageToCrawl;
-            Console.WriteLine("Did not crawl page {0} due to {1}", pageToCrawl.Uri.AbsoluteUri, e.DisallowedReason);
+        //        if (string.IsNullOrEmpty(e.CrawledPage.Content.Text))
+        //        {
+        //            Console.WriteLine("Page had no content {0}", e.CrawledPage.Uri.AbsoluteUri);
+        //            return;
+        //        }
 
-            // TODO: Store pages where crawling is disallowed
-        }
+        //        //var htmlAgilityPackDocument = crawledPage.HtmlDocument; //Html Agility Pack parser
+
+        //        var page = new CrawledPage
+        //        {
+        //            LastCheck = e.CrawledPage.RequestStarted,
+        //            Uri = e.CrawledPage.Uri,
+        //            Content = e.CrawledPage.Content.Text
+        //        };
+
+        //        _crawledPages.Add(page);
+
+        //        foreach (var link in e.CrawledPage.ParsedLinks)
+        //        {
+        //            _newPages.Add(new NewPage { Uri = link, Added = e.CrawledPage.RequestStarted, FoundOn = e.CrawledPage.Uri });
+        //        }
+        //    }
+        //}
     }
 }
