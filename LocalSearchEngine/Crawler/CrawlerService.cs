@@ -22,6 +22,8 @@ namespace LocalSearchEngine
                     var result = crawler.CrawlAsync(newPage.Uri);
                     result.Wait();
 
+                    Console.WriteLine($"Found {result.Result.Item2.Count} URIs on {newPage.Uri}");
+
                     _pageManager.RemoveNewPage(newPage);
 
                     _pageManager.AddCrawledPage(result.Result.Item1);

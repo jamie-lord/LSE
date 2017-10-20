@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Easy.Common;
@@ -12,8 +12,6 @@ namespace LocalSearchEngine
 {
     public class Crawler
     {
-        private ConcurrentBag<NewPage> _newPages = new ConcurrentBag<NewPage>();
-
         public Crawler()
         {
         }
@@ -24,9 +22,9 @@ namespace LocalSearchEngine
             {"UserAgent", "foo-bar"}
         };
 
-        public async Task<(CrawledPage, ConcurrentBag<NewPage>)> CrawlAsync(Uri uri)
+        public async Task<(CrawledPage, List<NewPage>)> CrawlAsync(Uri uri)
         {
-            _newPages = new ConcurrentBag<NewPage>();
+            var linksFound = new List<NewPage>();
 
             var crawledPage = new CrawledPage();
 
@@ -36,7 +34,7 @@ namespace LocalSearchEngine
                 {
                     if (!response.IsSuccessStatusCode)
                     {
-                        return (crawledPage, _newPages);
+                        return (crawledPage, linksFound);
                     }
 
                     if (response.Headers.Date.HasValue)
@@ -53,25 +51,42 @@ namespace LocalSearchEngine
                     using (var content = response.Content)
                     {
                         var result = await content.ReadAsStringAsync();
-                        crawledPage.Content = result;
-                        var document = new HtmlDocument();
-                        document.LoadHtml(result);
-
-                        foreach (HtmlNode link in document.DocumentNode.SelectNodes("//a[@href]"))
+                        if (result != null)
                         {
-                            HtmlAttribute att = link.Attributes["href"];
+                            crawledPage.Content = result;
+                            var document = new HtmlDocument();
+                            document.LoadHtml(result);
 
-                            _newPages.Add(new NewPage {
-                                Uri = new Uri(att.Value),
-                                Added = crawledPage.LastCheck.Value,
-                                FoundOn = crawledPage.Uri
-                            });
+                            if (document != null)
+                            {
+                                var links = document.DocumentNode.SelectNodes("//a[@href]");
+                                if (links != null)
+                                {
+                                    foreach (HtmlNode link in links)
+                                    {
+                                        HtmlAttribute att = link.Attributes["href"];
+
+                                        if (Uri.IsWellFormedUriString(att.Value, UriKind.Absolute))
+                                        {
+                                            var foundUri = new Uri(att.Value);
+                                            if (!linksFound.Any(x => x.Uri == foundUri) && foundUri != uri)
+                                            {
+                                                linksFound.Add(new NewPage
+                                                {
+                                                    Uri = foundUri,
+                                                    Added = crawledPage.LastCheck.Value,
+                                                    FoundOn = crawledPage.Uri
+                                                });
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
-
-            return (crawledPage, _newPages);
+            return (crawledPage, linksFound);
         }
     }
 }
