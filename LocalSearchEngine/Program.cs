@@ -1,5 +1,7 @@
 ﻿using System;
 using LocalSearchEngine.Crawler;
+using LocalSearchEngine.Database;
+using LocalSearchEngine.Database.Models;
 
 namespace LocalSearchEngine
 {

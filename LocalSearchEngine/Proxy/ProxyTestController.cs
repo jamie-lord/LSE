@@ -12,7 +12,7 @@ using Titanium.Web.Proxy.EventArguments;
 using Titanium.Web.Proxy.Http;
 using Titanium.Web.Proxy.Models;
 
-namespace LocalSearchEngine
+namespace LocalSearchEngine.Proxy
 {
     public class ProxyTestController
     {

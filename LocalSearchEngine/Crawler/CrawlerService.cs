@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using LocalSearchEngine.Database;
 
 namespace LocalSearchEngine.Crawler
 {

@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using LiteDB;
+using LocalSearchEngine.Database.Models;
 
-namespace LocalSearchEngine
+namespace LocalSearchEngine.Database
 {
     public class PageManager : IDisposable
     {

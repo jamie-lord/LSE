@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LocalSearchEngine
+namespace LocalSearchEngine.Database.Models
 {
     public class NewPage
     {

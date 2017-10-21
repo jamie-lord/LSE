@@ -6,6 +6,7 @@ using Easy.Common;
 using Easy.Common.Extensions;
 using Easy.Common.Interfaces;
 using HtmlAgilityPack;
+using LocalSearchEngine.Database.Models;
 
 namespace LocalSearchEngine.Crawler
 {
