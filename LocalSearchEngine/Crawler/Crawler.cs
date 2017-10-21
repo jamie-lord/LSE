@@ -15,14 +15,14 @@ namespace LocalSearchEngine.Crawler
         private readonly Dictionary<string, string> _defaultHeaders = new Dictionary<string, string>
         {
             {"Accept", "application/json"},
-            {"UserAgent", "foo-bar"}
+            {"UserAgent", "lse"}
         };
 
-        public async Task<(CrawledPage, List<NewPage>)> CrawlAsync(Uri uri)
+        public async Task<(Page, List<Link>)> CrawlAsync(Uri uri)
         {
-            var linksFound = new List<NewPage>();
+            var linksFound = new List<Link>();
 
-            var crawledPage = new CrawledPage();
+            var crawledPage = new Page();
 
             using (IRestClient client = new RestClient(_defaultHeaders, timeout: 15.Seconds()))
             {
@@ -55,14 +55,14 @@ namespace LocalSearchEngine.Crawler
 
                             var links = PageProcessor.GetAllLinks(document);
 
-                            foreach (var link in links)
+                            foreach (var newUri in links)
                             {
-                                var page = new NewPage {
-                                    Uri = link,
+                                var link = new Link {
+                                    Uri = newUri,
                                     Added = crawledPage.LastCheck.Value,
                                     FoundOn = crawledPage.Uri
                                 };
-                                linksFound.Add(page);
+                                linksFound.Add(link);
                             }
                         }
                     }

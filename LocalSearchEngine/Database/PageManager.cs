@@ -13,55 +13,55 @@ namespace LocalSearchEngine.Database
 
         private readonly LiteDatabase _db;
 
-        private LiteCollection<CrawledPage> _crawledPages;
+        private LiteCollection<Page> _pages;
 
-        private LiteCollection<NewPage> _newPages;
+        private LiteCollection<Link> _links;
 
         public PageManager()
         {
             Directory.CreateDirectory(_workingDir);
             _db = new LiteDatabase($"{_workingDir}/LSE.db");
 
-            _crawledPages = _db.GetCollection<CrawledPage>();
-            _crawledPages.EnsureIndex(x => x.Uri);
+            _pages = _db.GetCollection<Page>();
+            _pages.EnsureIndex(x => x.Uri);
 
-            _newPages = _db.GetCollection<NewPage>();
-            _newPages.EnsureIndex(x => x.Added);
+            _links = _db.GetCollection<Link>();
+            _links.EnsureIndex(x => x.Added);
         }
 
-        public void AddCrawledPage(CrawledPage page)
+        public void AddCrawledPage(Page page)
         {
-            _crawledPages.Upsert(page);
+            _pages.Upsert(page);
         }
 
-        public void AddCrawledPages(IEnumerable<CrawledPage> pages)
+        public void AddCrawledPages(IEnumerable<Page> pages)
         {
-            _crawledPages.Upsert(pages);
+            _pages.Upsert(pages);
         }
 
-        public void AddNewPage(NewPage page)
+        public void AddNewPage(Link page)
         {
-            _newPages.Upsert(page);
+            _links.Upsert(page);
         }
 
-        public void AddNewPages(IEnumerable<NewPage> pages)
+        public void AddNewPages(IEnumerable<Link> pages)
         {
-            _newPages.Upsert(pages);
+            _links.Upsert(pages);
         }
 
-        public NewPage NextToCrawl()
+        public Link NextToCrawl()
         {
-            var oldest = _newPages.Min("Added");
+            var oldest = _links.Min("Added");
             if (oldest != null)
             {
-                return _newPages.FindOne(x => x.Added == oldest.AsDateTime);
+                return _links.FindOne(x => x.Added == oldest.AsDateTime);
             }
             return null;
         }
 
-        public void RemoveNewPage(NewPage page)
+        public void RemoveNewPage(Link page)
         {
-            _newPages.Delete(page.Id);
+            _links.Delete(page.Id);
         }
 
         public void Dispose()

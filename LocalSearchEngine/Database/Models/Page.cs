@@ -1,7 +1,7 @@
 ﻿using System;
 namespace LocalSearchEngine.Database.Models
 {
-    public class CrawledPage
+    public class Page
     {
         public int Id { get; set; }
         public Uri Uri { get; set; }

@@ -27,9 +27,9 @@ namespace LocalSearchEngine
         {
             var pageManager = new PageManager();
 
-            pageManager.AddNewPage(new NewPage { Uri = new Uri("https://www.theguardian.com/uk"), Added = DateTime.Now });
-            pageManager.AddNewPage(new NewPage { Uri = new Uri("https://lord.technology"), Added = DateTime.Now });
-            pageManager.AddNewPage(new NewPage { Uri = new Uri("https://arstechnica.co.uk/"), Added = DateTime.Now });
+            pageManager.AddNewPage(new Link { Uri = new Uri("https://www.theguardian.com/uk"), Added = DateTime.Now });
+            pageManager.AddNewPage(new Link { Uri = new Uri("https://lord.technology"), Added = DateTime.Now });
+            pageManager.AddNewPage(new Link { Uri = new Uri("https://arstechnica.co.uk/"), Added = DateTime.Now });
 
             pageManager.Dispose();
         }

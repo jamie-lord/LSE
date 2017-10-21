@@ -2,7 +2,7 @@
 
 namespace LocalSearchEngine.Database.Models
 {
-    public class NewPage
+    public class Link
     {
         public int Id { get; set; }
         public Uri Uri { get; set; }
