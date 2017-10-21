@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Easy.Common;
@@ -8,14 +7,10 @@ using Easy.Common.Extensions;
 using Easy.Common.Interfaces;
 using HtmlAgilityPack;
 
-namespace LocalSearchEngine
+namespace LocalSearchEngine.Crawler
 {
     public class Crawler
     {
-        public Crawler()
-        {
-        }
-
         private readonly Dictionary<string, string> _defaultHeaders = new Dictionary<string, string>
         {
             {"Accept", "application/json"},
@@ -57,30 +52,16 @@ namespace LocalSearchEngine
                             var document = new HtmlDocument();
                             document.LoadHtml(result);
 
-                            if (document != null)
-                            {
-                                var links = document.DocumentNode.SelectNodes("//a[@href]");
-                                if (links != null)
-                                {
-                                    foreach (HtmlNode link in links)
-                                    {
-                                        HtmlAttribute att = link.Attributes["href"];
+                            var links = PageProcessor.GetAllLinks(document);
 
-                                        if (Uri.IsWellFormedUriString(att.Value, UriKind.Absolute))
-                                        {
-                                            var foundUri = new Uri(att.Value);
-                                            if (!linksFound.Any(x => x.Uri == foundUri) && foundUri != uri)
-                                            {
-                                                linksFound.Add(new NewPage
-                                                {
-                                                    Uri = foundUri,
-                                                    Added = crawledPage.LastCheck.Value,
-                                                    FoundOn = crawledPage.Uri
-                                                });
-                                            }
-                                        }
-                                    }
-                                }
+                            foreach (var link in links)
+                            {
+                                var page = new NewPage {
+                                    Uri = link,
+                                    Added = crawledPage.LastCheck.Value,
+                                    FoundOn = crawledPage.Uri
+                                };
+                                linksFound.Add(page);
                             }
                         }
                     }

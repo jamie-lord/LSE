@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Threading;
 
-namespace LocalSearchEngine
+namespace LocalSearchEngine.Crawler
 {
     public class CrawlerService
     {
-        public CrawlerService()
-        {
-        }
-
         private static readonly PageManager _pageManager = new PageManager();
 
         public void Start()
