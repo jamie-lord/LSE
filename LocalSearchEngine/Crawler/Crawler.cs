@@ -24,52 +24,61 @@ namespace LocalSearchEngine.Crawler
 
             var crawledPage = new Page();
 
-            using (IRestClient client = new RestClient(_defaultHeaders, timeout: 15.Seconds()))
+            try
             {
-                using (var response = await client.SendAsync(new HttpRequestMessage { Method = HttpMethod.Get, RequestUri = uri }))
+                using (IRestClient client = new RestClient(_defaultHeaders, timeout: 15.Seconds()))
                 {
-                    if (!response.IsSuccessStatusCode)
+                    using (var response = await client.SendAsync(new HttpRequestMessage { Method = HttpMethod.Get, RequestUri = uri }))
                     {
-                        return (crawledPage, linksFound);
-                    }
-
-                    if (response.Headers.Date.HasValue)
-                    {
-                        crawledPage.LastCheck = response.Headers.Date.Value.DateTime;
-                    }
-                    else
-                    {
-                        crawledPage.LastCheck = DateTime.Now;
-                    }
-
-                    crawledPage.Uri = response.RequestMessage.RequestUri;
-
-                    using (var content = response.Content)
-                    {
-                        var result = await content.ReadAsStringAsync();
-                        if (result != null)
+                        if (!response.IsSuccessStatusCode)
                         {
-                            crawledPage.Content = result;
-                            var document = new HtmlDocument();
-                            document.LoadHtml(result);
+                            return (crawledPage, linksFound);
+                        }
 
-                            var links = PageProcessor.GetAllLinks(document);
+                        if (response.Headers.Date.HasValue)
+                        {
+                            crawledPage.LastCheck = response.Headers.Date.Value.DateTime;
+                        }
+                        else
+                        {
+                            crawledPage.LastCheck = DateTime.Now;
+                        }
 
-                            foreach (var newUri in links)
+                        crawledPage.Uri = response.RequestMessage.RequestUri;
+
+                        using (var content = response.Content)
+                        {
+                            var result = await content.ReadAsStringAsync();
+                            if (result != null)
                             {
-                                var link = new Link {
-                                    Uri = newUri,
-                                    Added = crawledPage.LastCheck.Value,
-                                    FoundOn = crawledPage.Uri
-                                };
-                                linksFound.Add(link);
-                            }
+                                crawledPage.Content = result;
+                                var document = new HtmlDocument();
+                                document.LoadHtml(result);
 
-                            PageProcessor.ExtractMetadata(crawledPage.Content);
+                                var links = PageProcessor.GetAllLinks(document);
+
+                                foreach (var newUri in links)
+                                {
+                                    var link = new Link
+                                    {
+                                        Uri = newUri,
+                                        Added = crawledPage.LastCheck.Value,
+                                        FoundOn = crawledPage.Uri
+                                    };
+                                    linksFound.Add(link);
+                                }
+
+                                PageProcessor.ExtractMetadata(crawledPage.Content);
+                            }
                         }
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
             return (crawledPage, linksFound);
         }
     }

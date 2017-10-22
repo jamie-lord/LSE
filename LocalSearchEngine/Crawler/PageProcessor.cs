@@ -44,17 +44,27 @@ namespace LocalSearchEngine.Crawler
             {
                 return;
             }
-            var title = FindTitle(document);
 
+            var title = FindTitle(document);
+            Console.WriteLine("*************************");
+            Console.WriteLine($"Title\t{title}");
         }
 
         private static string FindTitle(HtmlDocument document)
         {
-            string title = document.DocumentNode.SelectSingleNode("//head/title").InnerText;
-            if (!string.IsNullOrEmpty(title)) return title;
-            title = document.DocumentNode.SelectSingleNode("//title").InnerText;
-            if (!string.IsNullOrEmpty(title)) return title;
-            title = document.DocumentNode.Descendants("title").FirstOrDefault().InnerText;
+            string title = null;
+            try
+            {
+                title = document.DocumentNode.SelectSingleNode("//head/title").InnerText;
+                if (!string.IsNullOrEmpty(title)) return title;
+                title = document.DocumentNode.SelectSingleNode("//title").InnerText;
+                if (!string.IsNullOrEmpty(title)) return title;
+                title = document.DocumentNode.Descendants("title").FirstOrDefault().InnerText;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
             return title;
         }
     }
