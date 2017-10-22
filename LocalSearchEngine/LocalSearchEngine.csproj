@@ -10,6 +10,7 @@
     <PackageReference Include="LiteDB" Version="3.1.4" />
     <PackageReference Include="HtmlAgilityPack" Version="1.6.1" />
     <PackageReference Include="Easy.Common" Version="2.2.0" />
+    <PackageReference Include="SmartReader" Version="0.1.2" />
   </ItemGroup>
 
   <ItemGroup>

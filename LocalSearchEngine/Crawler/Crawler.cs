@@ -68,7 +68,7 @@ namespace LocalSearchEngine.Crawler
                                     linksFound.Add(link);
                                 }
 
-                                PageProcessor.ExtractMetadata(crawledPage.Content);
+                                PageProcessor.ExtractMetadata(crawledPage.Content, uri);
                             }
                         }
                     }
