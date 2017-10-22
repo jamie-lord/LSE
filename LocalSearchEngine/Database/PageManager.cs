@@ -17,8 +17,13 @@ namespace LocalSearchEngine.Database
 
         private LiteCollection<Link> _links;
 
-        public PageManager()
+        public PageManager(bool removeDataDirectory = false)
         {
+            if (removeDataDirectory && Directory.Exists(_workingDir))
+            {
+                Directory.Delete(_workingDir, true);
+            }
+
             Directory.CreateDirectory(_workingDir);
             _db = new LiteDatabase($"{_workingDir}/LSE.db");
 
