@@ -1,4 +1,5 @@
 ﻿using System;
+
 namespace LocalSearchEngine.Database.Models
 {
     public class Page

@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using HtmlAgilityPack;
-using NReadability;
+using System.Linq;
 
 namespace LocalSearchEngine.Crawler
 {
@@ -56,8 +55,22 @@ namespace LocalSearchEngine.Crawler
             }
             else
             {
-                
+                var title = FindTitle(pageContent);
+
             }
+        }
+
+        private static string FindTitle(string pageContent)
+        {
+            var document = new HtmlDocument();
+            document.LoadHtml(pageContent);
+
+            string title = document.DocumentNode.SelectSingleNode("//head/title").InnerText;
+            if (!string.IsNullOrEmpty(title)) return title;
+            title = document.DocumentNode.SelectSingleNode("//title").InnerText;
+            if (!string.IsNullOrEmpty(title)) return title;
+            title = document.DocumentNode.Descendants("title").FirstOrDefault().InnerText;
+            return title;
         }
     }
 }
