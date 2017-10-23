@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using HtmlAgilityPack;
 using System.Linq;
+using SmartReader;
 
 namespace LocalSearchEngine.Crawler
 {
@@ -35,9 +36,9 @@ namespace LocalSearchEngine.Crawler
             return links;
         }
 
-        public static void ExtractMetadata(string pageContent, Uri uri)
+        public static PageMetadata ExtractMetadata(string pageContent, Uri uri)
         {
-            var r = SmartReader.Reader.ParseArticle(uri.AbsoluteUri, pageContent);
+            var r = Reader.ParseArticle(uri.AbsoluteUri, pageContent);
 
             if (r.IsReadable)
             {
@@ -52,11 +53,11 @@ namespace LocalSearchEngine.Crawler
                 Console.WriteLine($"Title\t{r.Title}");
                 Console.WriteLine($"Uri\t{r.Uri}");
                 Console.WriteLine($"Text content\t{r.TextContent}");
+                return new PageMetadata(r.Author, r.Byline, r.Dir, r.Excerpt, r.Language, r.Length, r.PublicationDate, r.TimeToRead, r.Title, r.Uri, r.TextContent);
             }
             else
             {
-                var title = FindTitle(pageContent);
-
+                return new PageMetadata { Title = FindTitle(pageContent) };
             }
         }
 

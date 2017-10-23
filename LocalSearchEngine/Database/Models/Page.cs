@@ -1,4 +1,5 @@
 ﻿using System;
+using LocalSearchEngine.Crawler;
 
 namespace LocalSearchEngine.Database.Models
 {
@@ -18,5 +19,19 @@ namespace LocalSearchEngine.Database.Models
         public TimeSpan TimeToRead { get; set; }
         public string Title { get; set; }
         public string Text { get; set; }
+
+        public void InsertMetadata(PageMetadata pageMetadata)
+        {
+            Author = pageMetadata.Author;
+            ByLine = pageMetadata.ByLine;
+            TextDirection = pageMetadata.TextDirection;
+            Excerpt = pageMetadata.Excerpt;
+            Language = pageMetadata.Language;
+            Length = pageMetadata.Length;
+            PublicationDate = pageMetadata.PublicationDate;
+            TimeToRead = pageMetadata.TimeToRead;
+            Title = pageMetadata.Title;
+            Text = pageMetadata.TextContent;
+        }
     }
 }

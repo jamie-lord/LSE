@@ -27,10 +27,10 @@ namespace LocalSearchEngine
         {
             var pageManager = new PageManager(true);
 
-            pageManager.AddNewPage(new Link { Uri = new Uri("https://www.theguardian.com/technology/2017/oct/22/richard-branson-elon-musk-hyperloop-one-pie-in-the-sky"), Added = DateTime.Now });
-            //pageManager.AddNewPage(new Link { Uri = new Uri("https://www.theguardian.com/uk"), Added = DateTime.Now });
-            //pageManager.AddNewPage(new Link { Uri = new Uri("https://lord.technology"), Added = DateTime.Now });
-            //pageManager.AddNewPage(new Link { Uri = new Uri("https://arstechnica.co.uk/"), Added = DateTime.Now });
+            //pageManager.AddNewPage(new Link { Uri = new Uri("https://www.theguardian.com/technology/2017/oct/22/richard-branson-elon-musk-hyperloop-one-pie-in-the-sky"), Added = DateTime.Now });
+            pageManager.AddNewPage(new Link { Uri = new Uri("https://www.theguardian.com/uk"), Added = DateTime.Now });
+            pageManager.AddNewPage(new Link { Uri = new Uri("https://lord.technology"), Added = DateTime.Now });
+            pageManager.AddNewPage(new Link { Uri = new Uri("https://arstechnica.co.uk/"), Added = DateTime.Now });
 
             pageManager.Dispose();
         }
