@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using HtmlAgilityPack;
 using System.Linq;
 using SmartReader;
+using Easy.Common.Extensions;
 
 namespace LocalSearchEngine.Crawler
 {
@@ -36,42 +37,55 @@ namespace LocalSearchEngine.Crawler
             return links;
         }
 
-        public static PageMetadata ExtractMetadata(string pageContent, Uri uri)
+        public static PageMetadata ExtractMetadata(HtmlDocument document, Uri uri)
         {
-            var r = Reader.ParseArticle(uri.AbsoluteUri, pageContent);
+            var r = Reader.ParseArticle(uri.AbsoluteUri, document.DocumentNode.OuterHtml);
 
             if (r.IsReadable)
             {
-                Console.WriteLine($"Author\t{r.Author}");
-                Console.WriteLine($"By line\t{r.Byline}");
-                Console.WriteLine($"Dir\t{r.Dir}");
-                Console.WriteLine($"Excerpt\t{r.Excerpt}");
-                Console.WriteLine($"Language\t{r.Language}");
-                Console.WriteLine($"Length\t{r.Length}");
-                Console.WriteLine($"Publication date\t{r.PublicationDate}");
-                Console.WriteLine($"Time to read\t{r.TimeToRead}");
-                Console.WriteLine($"Title\t{r.Title}");
-                Console.WriteLine($"Uri\t{r.Uri}");
-                Console.WriteLine($"Text content\t{r.TextContent}");
                 return new PageMetadata(r.Author, r.Byline, r.Dir, r.Excerpt, r.Language, r.Length, r.PublicationDate, r.TimeToRead, r.Title, r.Uri, r.TextContent);
             }
             else
             {
-                return new PageMetadata { Title = FindTitle(pageContent) };
+                return new PageMetadata { Title = FindTitle(document) };
             }
         }
 
-        private static string FindTitle(string pageContent)
+        private static string FindTitle(HtmlDocument document)
         {
-            var document = new HtmlDocument();
-            document.LoadHtml(pageContent);
-
             string title = document.DocumentNode.SelectSingleNode("//head/title").InnerText;
             if (!string.IsNullOrEmpty(title)) return title;
             title = document.DocumentNode.SelectSingleNode("//title").InnerText;
             if (!string.IsNullOrEmpty(title)) return title;
             title = document.DocumentNode.Descendants("title").FirstOrDefault().InnerText;
             return title;
+        }
+
+        public static List<Dictionary<string, string>> ExtractMetaTags(HtmlDocument document)
+        {
+            var metaTags = document.DocumentNode.SelectNodes("//meta");
+            if (metaTags != null)
+            {
+                var tags = new List<Dictionary<string, string>>();
+                foreach (var t in metaTags)
+                {
+                    var tagComponents = new Dictionary<string, string>();
+                    foreach (var item in t.Attributes)
+                    {
+                        tagComponents.Add(item.Name, item.Value);
+                    }
+                    if (tagComponents.IsNotNullOrEmpty())
+                    {
+                        tags.Add(tagComponents);
+                    }
+                }
+
+                if (tags.IsNotNullOrEmpty())
+                {
+                    return tags;
+                }
+            }
+            return null;
         }
     }
 }

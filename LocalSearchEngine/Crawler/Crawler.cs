@@ -68,8 +68,11 @@ namespace LocalSearchEngine.Crawler
                                     linksFound.Add(link);
                                 }
 
-                                var metadata = PageProcessor.ExtractMetadata(crawledPage.Content, uri);
+                                var metadata = PageProcessor.ExtractMetadata(document, uri);
                                 crawledPage.InsertMetadata(metadata);
+
+                                var metaTags = PageProcessor.ExtractMetaTags(document);
+                                crawledPage.MetaTags = metaTags;
                             }
                         }
                     }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using LocalSearchEngine.Crawler;
 
 namespace LocalSearchEngine.Database.Models
@@ -16,9 +17,10 @@ namespace LocalSearchEngine.Database.Models
         public string Language { get; set; }
         public int Length { get; set; }
         public DateTime? PublicationDate { get; set; }
-        public TimeSpan TimeToRead { get; set; }
+        public TimeSpan? TimeToRead { get; set; }
         public string Title { get; set; }
         public string Text { get; set; }
+        public List<Dictionary<string, string>> MetaTags { get; set; }
 
         public void InsertMetadata(PageMetadata pageMetadata)
         {
@@ -29,9 +31,41 @@ namespace LocalSearchEngine.Database.Models
             Language = pageMetadata.Language;
             Length = pageMetadata.Length;
             PublicationDate = pageMetadata.PublicationDate;
-            TimeToRead = pageMetadata.TimeToRead;
+
+            if (pageMetadata.TimeToRead == TimeSpan.Zero)
+            {
+                TimeToRead = null;
+            }
+            else
+            {
+                TimeToRead = pageMetadata.TimeToRead;
+            }
+
             Title = pageMetadata.Title;
             Text = pageMetadata.TextContent;
+        }
+
+        public void PrintDetails()
+        {
+            PrintProperty(Id, nameof(Id));
+            PrintProperty(Uri, nameof(Uri));
+            PrintProperty(Title, nameof(Title));
+            PrintProperty(LastCheck, nameof(LastCheck));
+            PrintProperty(Author, nameof(Author));
+            PrintProperty(ByLine, nameof(ByLine));
+            PrintProperty(TextDirection, nameof(TextDirection));
+            PrintProperty(Excerpt, nameof(Excerpt));
+            PrintProperty(Language, nameof(Language));
+            PrintProperty(Length, nameof(Length));
+            PrintProperty(PublicationDate, nameof(PublicationDate));
+            PrintProperty(TimeToRead, nameof(TimeToRead));
+            PrintProperty(MetaTags.Count, nameof(MetaTags));
+            Console.WriteLine("************");
+        }
+
+        private void PrintProperty(object p, string name)
+        {
+            if (p != null) Console.WriteLine("{0,-15}{1,-15}", name, p);
         }
     }
 }
