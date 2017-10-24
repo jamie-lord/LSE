@@ -20,8 +20,8 @@ namespace LocalSearchEngine.Crawler
                     result.Wait();
 
                     _pageManager.RemoveNewPage(newPage);
-                    _pageManager.AddCrawledPage(result.Result.Item1);
-                    _pageManager.AddNewPages(result.Result.Item2);
+                    _pageManager.UpdatePage(result.Result.Item1);
+                    _pageManager.UpdateLinks(result.Result.Item2);
 
                     Console.WriteLine($"Found {result.Result.Item2.Count} URIs on {result.Result.Item1.Uri}");
                     result.Result.Item1.PrintDetails();

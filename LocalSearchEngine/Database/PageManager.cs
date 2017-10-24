@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
-using LiteDB;
 using LocalSearchEngine.Database.Models;
+using SQLite;
 
 namespace LocalSearchEngine.Database
 {
@@ -11,11 +12,7 @@ namespace LocalSearchEngine.Database
     {
         private static string _workingDir = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + "/Data";
 
-        private readonly LiteDatabase _db;
-
-        private LiteCollection<Page> _pages;
-
-        private LiteCollection<Link> _links;
+        private readonly SQLiteConnection _db;
 
         public PageManager(bool removeDataDirectory = false)
         {
@@ -25,48 +22,64 @@ namespace LocalSearchEngine.Database
             }
 
             Directory.CreateDirectory(_workingDir);
-            _db = new LiteDatabase($"{_workingDir}/LSE.db");
+            _db = new SQLiteConnection($"{_workingDir}/LSE.db", true);
 
-            _pages = _db.GetCollection<Page>();
-            _pages.EnsureIndex(x => x.Uri);
-
-            _links = _db.GetCollection<Link>();
-            _links.EnsureIndex(x => x.Added);
+            _db.CreateTable<Page>();
+            _db.CreateTable<Link>();
         }
 
-        public void AddCrawledPage(Page page)
+        public void UpdatePage(Page page)
         {
-            _pages.Upsert(page);
+            var e = _db.Find<Page>(x => x.Id == page.Id || x.Uri == page.Uri);
+            if (e != null)
+            {
+                page.Id = e.Id;
+                _db.Update(page);
+            }
+            else
+            {
+                _db.Insert(page);
+            }
         }
 
-        public void AddCrawledPages(IEnumerable<Page> pages)
+        public void UpdatePages(IEnumerable<Page> pages)
         {
-            _pages.Upsert(pages);
+            foreach (var page in pages)
+            {
+                UpdatePage(page);
+            }
         }
 
-        public void AddNewPage(Link page)
+        public void UpdateLink(Link link)
         {
-            _links.Upsert(page);
+            var e = _db.Find<Link>(x => x.Id == link.Id || x.Uri == link.Uri);
+            if (e != null)
+            {
+                link.Id = e.Id;
+                _db.Update(link);
+            }
+            else
+            {
+                _db.Insert(link);
+            }
         }
 
-        public void AddNewPages(IEnumerable<Link> pages)
+        public void UpdateLinks(IEnumerable<Link> links)
         {
-            _links.Upsert(pages);
+            foreach (var link in links)
+            {
+                UpdateLink(link);
+            }
         }
 
         public Link NextToCrawl()
         {
-            var oldest = _links.Min("Added");
-            if (oldest != null)
-            {
-                return _links.FindOne(x => x.Added == oldest.AsDateTime);
-            }
-            return null;
+            return _db.Query<Link>("select * from Link order by Added").FirstOrDefault();
         }
 
         public void RemoveNewPage(Link page)
         {
-            _links.Delete(page.Id);
+            _db.Delete(page);
         }
 
         public void Dispose()

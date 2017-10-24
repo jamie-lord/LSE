@@ -7,10 +7,10 @@
 
   <ItemGroup>
     <PackageReference Include="Titanium.Web.Proxy" Version="3.0.130" />
-    <PackageReference Include="LiteDB" Version="3.1.4" />
     <PackageReference Include="HtmlAgilityPack" Version="1.6.1" />
     <PackageReference Include="Easy.Common" Version="2.2.0" />
     <PackageReference Include="SmartReader" Version="0.1.2" />
+    <PackageReference Include="sqlite-net-pcl" Version="1.4.118" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using LocalSearchEngine.Crawler;
+using SQLite;
 
 namespace LocalSearchEngine.Database.Models
 {
     public class Page
     {
+        [PrimaryKey, AutoIncrement]
         public int Id { get; set; }
+        [Indexed]
         public Uri Uri { get; set; }
+        [Indexed]
         public DateTime? LastCheck { get; set; }
         public string Content { get; set; }
         public string Author { get; set; }
