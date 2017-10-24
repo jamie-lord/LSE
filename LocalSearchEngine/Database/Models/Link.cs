@@ -8,9 +8,9 @@ namespace LocalSearchEngine.Database.Models
         [PrimaryKey, AutoIncrement]
         public int Id { get; set; }
         [Indexed]
-        public Uri Uri { get; set; }
+        public string Uri { get; set; }
         public DateTime Added { get; set; }
         [Indexed]
-        public Uri FoundOn { get; set; }
+        public int PageFoundOn { get; set; }
     }
 }

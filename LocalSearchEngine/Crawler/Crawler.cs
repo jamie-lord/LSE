@@ -18,7 +18,7 @@ namespace LocalSearchEngine.Crawler
             {"UserAgent", "lse"}
         };
 
-        public async Task<(Page, List<Link>)> CrawlAsync(Uri uri)
+        public async Task<(Page, List<Link>)> CrawlAsync(string uri)
         {
             var linksFound = new List<Link>();
 
@@ -28,7 +28,7 @@ namespace LocalSearchEngine.Crawler
             {
                 using (IRestClient client = new RestClient(_defaultHeaders, timeout: 15.Seconds()))
                 {
-                    using (var response = await client.SendAsync(new HttpRequestMessage { Method = HttpMethod.Get, RequestUri = uri }))
+                    using (var response = await client.SendAsync(new HttpRequestMessage { Method = HttpMethod.Get, RequestUri = new Uri(uri) }))
                     {
                         if (!response.IsSuccessStatusCode)
                         {
@@ -44,7 +44,7 @@ namespace LocalSearchEngine.Crawler
                             crawledPage.LastCheck = DateTime.Now;
                         }
 
-                        crawledPage.Uri = response.RequestMessage.RequestUri;
+                        crawledPage.Uri = response.RequestMessage.RequestUri.AbsoluteUri;
 
                         using (var content = response.Content)
                         {
@@ -63,7 +63,7 @@ namespace LocalSearchEngine.Crawler
                                     {
                                         Uri = newUri,
                                         Added = crawledPage.LastCheck.Value,
-                                        FoundOn = crawledPage.Uri
+                                        PageFoundOn = crawledPage.Id
                                     };
                                     linksFound.Add(link);
                                 }

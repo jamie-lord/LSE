@@ -76,9 +76,9 @@ namespace LocalSearchEngine.Crawler
             set { _title = value; }
         }
 
-        private Uri _uri;
+        private string _uri;
 
-        public Uri Uri
+        public string Uri
         {
             get { return _uri; }
             set { _uri = value; }
@@ -96,7 +96,7 @@ namespace LocalSearchEngine.Crawler
         {
         }
 
-        public PageMetadata(string author, string byLine, string textDirection, string excerpt, string language, int length, DateTime? publicationDate, TimeSpan timeToRead, string title, Uri uri, string textContent)
+        public PageMetadata(string author, string byLine, string textDirection, string excerpt, string language, int length, DateTime? publicationDate, TimeSpan timeToRead, string title, string uri, string textContent)
         {
             _author = author;
             _byLine = byLine;

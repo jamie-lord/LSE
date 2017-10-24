@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using LocalSearchEngine.Crawler;
 using SQLite;
 
@@ -10,7 +12,7 @@ namespace LocalSearchEngine.Database.Models
         [PrimaryKey, AutoIncrement]
         public int Id { get; set; }
         [Indexed]
-        public Uri Uri { get; set; }
+        public string Uri { get; set; }
         [Indexed]
         public DateTime? LastCheck { get; set; }
         public string Content { get; set; }
@@ -24,8 +26,29 @@ namespace LocalSearchEngine.Database.Models
         public TimeSpan? TimeToRead { get; set; }
         public string Title { get; set; }
         public string Text { get; set; }
-        public List<Dictionary<string, string>> MetaTags { get; set; }
-
+        [Ignore]
+        public List<Dictionary<string, string>> MetaTags {
+            get
+            {
+                if (BinaryMetaTags == null)
+                {
+                    return null;
+                }
+                var stream = new MemoryStream();
+                var binFormatter = new BinaryFormatter();
+                stream.Write(BinaryMetaTags, 0, BinaryMetaTags.Length);
+                stream.Position = 0;
+                return binFormatter.Deserialize(stream) as List<Dictionary<string, string>>;
+            }
+            set
+            {
+                var binFormatter = new BinaryFormatter();
+                var stream = new MemoryStream();
+                binFormatter.Serialize(stream, value);
+                BinaryMetaTags = stream.ToArray();
+            }
+        }
+        public byte[] BinaryMetaTags { get; set; }
         public void InsertMetadata(PageMetadata pageMetadata)
         {
             Author = pageMetadata.Author;
@@ -63,7 +86,7 @@ namespace LocalSearchEngine.Database.Models
             PrintProperty(Length, nameof(Length));
             PrintProperty(PublicationDate, nameof(PublicationDate));
             PrintProperty(TimeToRead, nameof(TimeToRead));
-            PrintProperty(MetaTags.Count, nameof(MetaTags));
+            if (MetaTags != null) PrintProperty(MetaTags.Count, nameof(MetaTags));
             Console.WriteLine("************");
         }
 

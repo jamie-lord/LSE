@@ -9,9 +9,9 @@ namespace LocalSearchEngine.Crawler
 {
     public static class PageProcessor
     {
-        public static List<Uri> GetAllLinks(HtmlDocument document)
+        public static List<string> GetAllLinks(HtmlDocument document)
         {
-            var links = new List<Uri>();
+            var links = new List<string>();
             if (document == null)
             {
                 return links;
@@ -26,10 +26,9 @@ namespace LocalSearchEngine.Crawler
 
                     if (Uri.IsWellFormedUriString(att.Value, UriKind.Absolute))
                     {
-                        var foundUri = new Uri(att.Value);
-                        if (!links.Contains(foundUri))
+                        if (!links.Contains(att.Value))
                         {
-                            links.Add(foundUri);
+                            links.Add(att.Value);
                         }
                     }
                 }
@@ -37,13 +36,13 @@ namespace LocalSearchEngine.Crawler
             return links;
         }
 
-        public static PageMetadata ExtractMetadata(HtmlDocument document, Uri uri)
+        public static PageMetadata ExtractMetadata(HtmlDocument document, string uri)
         {
-            var r = Reader.ParseArticle(uri.AbsoluteUri, document.DocumentNode.OuterHtml);
+            var r = Reader.ParseArticle(uri, document.DocumentNode.OuterHtml);
 
             if (r.IsReadable)
             {
-                return new PageMetadata(r.Author, r.Byline, r.Dir, r.Excerpt, r.Language, r.Length, r.PublicationDate, r.TimeToRead, r.Title, r.Uri, r.TextContent);
+                return new PageMetadata(r.Author, r.Byline, r.Dir, r.Excerpt, r.Language, r.Length, r.PublicationDate, r.TimeToRead, r.Title, r.Uri.AbsoluteUri, r.TextContent);
             }
             else
             {

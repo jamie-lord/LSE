@@ -38,7 +38,7 @@ namespace LocalSearchEngine.Database
             }
             else
             {
-                _db.Insert(page);
+                if (!string.IsNullOrEmpty(page.Uri)) _db.Insert(page);
             }
         }
 
@@ -60,7 +60,7 @@ namespace LocalSearchEngine.Database
             }
             else
             {
-                _db.Insert(link);
+                if (!string.IsNullOrEmpty(link.Uri)) _db.Insert(link);
             }
         }
 
@@ -74,7 +74,7 @@ namespace LocalSearchEngine.Database
 
         public Link NextToCrawl()
         {
-            return _db.Query<Link>("select * from Link order by Added").FirstOrDefault();
+            return _db.Query<Link>("SELECT * FROM Link ORDER BY Added LIMIT 1").FirstOrDefault();
         }
 
         public void RemoveNewPage(Link page)

@@ -21,6 +21,9 @@ namespace LocalSearchEngine.Crawler
 
                     _pageManager.RemoveNewPage(newPage);
                     _pageManager.UpdatePage(result.Result.Item1);
+
+                    result.Result.Item2.ForEach(link => link.PageFoundOn = result.Result.Item1.Id);
+
                     _pageManager.UpdateLinks(result.Result.Item2);
 
                     Console.WriteLine($"Found {result.Result.Item2.Count} URIs on {result.Result.Item1.Uri}");
