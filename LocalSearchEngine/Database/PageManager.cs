@@ -72,14 +72,37 @@ namespace LocalSearchEngine.Database
             }
         }
 
+        private Queue<Link> _linksToCrawlBuffer = new Queue<Link>();
+        private readonly object _linksToCrawlLock = new object();
+        private const int _linkSelectLimit = 100;
+
         public Link NextToCrawl()
         {
-            return _db.Query<Link>("SELECT * FROM Link ORDER BY Added LIMIT 1").FirstOrDefault();
+            Link link = null;
+            lock(_linksToCrawlLock)
+            {
+                if (_linksToCrawlBuffer.Count == 0)
+                {
+                    var r = _db.Query<Link>("SELECT * FROM Link ORDER BY Added LIMIT ?", _linkSelectLimit);
+                    foreach (var l in r)
+                    {
+                        if (!_linksToCrawlBuffer.Contains(l))
+                        {
+                            _linksToCrawlBuffer.Enqueue(l);
+                        }
+                    }
+                }
+                else
+                {
+                    link = _linksToCrawlBuffer.Dequeue();
+                }
+            }
+            return link;
         }
 
-        public void RemoveNewPage(Link page)
+        public void RemoveLink(Link link)
         {
-            _db.Delete(page);
+            _db.Delete(link);
         }
 
         public void Dispose()
