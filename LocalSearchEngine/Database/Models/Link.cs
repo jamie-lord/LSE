@@ -7,10 +7,10 @@ namespace LocalSearchEngine.Database.Models
     {
         [PrimaryKey, AutoIncrement]
         public int Id { get; set; }
-        [Indexed]
+        [Indexed, NotNull]
         public string Uri { get; set; }
+        [Indexed, NotNull]
         public DateTime Added { get; set; }
-        [Indexed]
         public int PageFoundOn { get; set; }
     }
 }

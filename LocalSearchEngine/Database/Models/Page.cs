@@ -11,9 +11,9 @@ namespace LocalSearchEngine.Database.Models
     {
         [PrimaryKey, AutoIncrement]
         public int Id { get; set; }
-        [Indexed]
+        [Indexed, NotNull]
         public string Uri { get; set; }
-        [Indexed]
+        [Indexed, NotNull]
         public DateTime? LastCheck { get; set; }
         public string Content { get; set; }
         public string Author { get; set; }
@@ -92,7 +92,7 @@ namespace LocalSearchEngine.Database.Models
 
         private void PrintProperty(object p, string name)
         {
-            if (p != null) Console.WriteLine("{0,-15}{1,-15}", name, p);
+            if (p != null) Console.WriteLine("{0,-20}{1,-20}", name, p);
         }
     }
 }
