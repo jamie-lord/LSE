@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 
 namespace LocalSearchEngine.Crawler
 {
@@ -84,12 +85,25 @@ namespace LocalSearchEngine.Crawler
             set { _uri = value; }
         }
 
+        private static readonly Regex _multipleSpaces = new Regex(@"\s+", RegexOptions.Compiled);
+
         private string _textContent;
 
         public string TextContent
         {
             get { return _textContent; }
-            set { _textContent = value; }
+            set
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    _textContent = _multipleSpaces.Replace(value, " ");
+                    _textContent = _textContent.Trim();
+                }
+                else
+                {
+                    _textContent = value;
+                }
+            }
         }
 
         public PageMetadata()
@@ -108,7 +122,7 @@ namespace LocalSearchEngine.Crawler
             _timeToRead = timeToRead;
             _title = title;
             _uri = uri;
-            _textContent = textContent;
+            TextContent = textContent;
         }
     }
 }

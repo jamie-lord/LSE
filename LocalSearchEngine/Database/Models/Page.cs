@@ -15,7 +15,6 @@ namespace LocalSearchEngine.Database.Models
         public string Uri { get; set; }
         [Indexed, NotNull]
         public DateTime? LastCheck { get; set; }
-        public string Content { get; set; }
         public string Author { get; set; }
         public string ByLine { get; set; }
         public string TextDirection { get; set; }
@@ -25,9 +24,13 @@ namespace LocalSearchEngine.Database.Models
         public DateTime? PublicationDate { get; set; }
         public TimeSpan? TimeToRead { get; set; }
         public string Title { get; set; }
-        public string Text { get; set; }
+
         [Ignore]
-        public List<Dictionary<string, string>> MetaTags {
+        public PageContent Content { get; set; }
+
+        [Ignore]
+        public List<Dictionary<string, string>> MetaTags
+        {
             get
             {
                 if (BinaryMetaTags == null)
@@ -48,7 +51,9 @@ namespace LocalSearchEngine.Database.Models
                 BinaryMetaTags = stream.ToArray();
             }
         }
+
         public byte[] BinaryMetaTags { get; set; }
+
         public void InsertMetadata(PageMetadata pageMetadata)
         {
             Author = pageMetadata.Author;
@@ -69,7 +74,11 @@ namespace LocalSearchEngine.Database.Models
             }
 
             Title = pageMetadata.Title;
-            Text = pageMetadata.TextContent;
+
+            if (!string.IsNullOrEmpty(pageMetadata.TextContent))
+            {
+                Content = new PageContent { Content = pageMetadata.TextContent };
+            }
         }
 
         public void PrintDetails()
@@ -94,5 +103,14 @@ namespace LocalSearchEngine.Database.Models
         {
             if (p != null) Console.WriteLine("{0,-20}{1,-20}", name, p);
         }
+    }
+
+    public class PageContent
+    {
+        [PrimaryKey]
+        public int Id { get; set; }
+
+        [NotNull]
+        public string Content { get; set; }
     }
 }

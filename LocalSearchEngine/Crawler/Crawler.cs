@@ -51,7 +51,6 @@ namespace LocalSearchEngine.Crawler
                             var result = await content.ReadAsStringAsync();
                             if (result != null)
                             {
-                                crawledPage.Content = result;
                                 var document = new HtmlDocument();
                                 document.LoadHtml(result);
 

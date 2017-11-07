@@ -9,14 +9,6 @@ namespace LocalSearchEngine
     {
         public static void Main(string[] args)
         {
-            //var hoot = new Hoot.Hoot($"{_workingDir}/Indexes", "test", false);
-
-            //hoot.FreeMemory();
-
-            //hoot.Index(0, "this is some great text!");
-
-            //hoot.OptimizeIndex();
-
             SeedNewPages();
 
             var crawlerService = new CrawlerService();

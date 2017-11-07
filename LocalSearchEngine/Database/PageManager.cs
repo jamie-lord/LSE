@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using LocalSearchEngine.Database.Models;
 using SQLite;
@@ -26,6 +25,7 @@ namespace LocalSearchEngine.Database
 
             _db.CreateTable<Page>();
             _db.CreateTable<Link>();
+            _db.CreateTable<PageContent>(CreateFlags.FullTextSearch4);
         }
 
         public void UpdatePage(Page page)
@@ -34,11 +34,32 @@ namespace LocalSearchEngine.Database
             if (e != null)
             {
                 page.Id = e.Id;
+                if (page.Content != null && !string.IsNullOrEmpty(page.Content.Content))
+                {
+                    page.Content.Id = page.Id;
+                    var c = _db.Find<PageContent>(x => x.Id == page.Id);
+                    if (c != null)
+                    {
+                        _db.Update(page.Content);
+                    }
+                    else
+                    {
+                        _db.Insert(page.Content);
+                    }
+                }
                 _db.Update(page);
             }
             else
             {
-                if (!string.IsNullOrEmpty(page.Uri)) _db.Insert(page);
+                if (!string.IsNullOrEmpty(page.Uri))
+                {
+                    _db.Insert(page);
+                    if (page.Content != null && !string.IsNullOrEmpty(page.Content.Content))
+                    {
+                        page.Content.Id = page.Id;
+                        _db.Insert(page.Content);
+                    }
+                }
             }
         }
 
@@ -79,7 +100,7 @@ namespace LocalSearchEngine.Database
         public Link NextToCrawl()
         {
             Link link = null;
-            lock(_linksToCrawlLock)
+            lock (_linksToCrawlLock)
             {
                 if (_linksToCrawlBuffer.Count == 0)
                 {
