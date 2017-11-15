@@ -10,7 +10,7 @@ namespace LocalSearchEngine.Crawler
 {
     public class CrawlerService
     {
-        private static readonly PageManager _pageManager = new PageManager();
+        private static readonly DatabaseManager _pageManager = new DatabaseManager();
 
         public void Start()
         {

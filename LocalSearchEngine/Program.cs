@@ -17,7 +17,7 @@ namespace LocalSearchEngine
 
         private static void SeedNewPages()
         {
-            var pageManager = new PageManager(true);
+            var pageManager = new DatabaseManager(true);
 
             pageManager.UpdateLink(new Link { Uri = "https://www.theguardian.com/uk", Added = DateTime.Now });
             pageManager.UpdateLink(new Link { Uri = "https://lord.technology", Added = DateTime.Now });

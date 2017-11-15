@@ -7,13 +7,13 @@ using SQLite;
 
 namespace LocalSearchEngine.Database
 {
-    public class PageManager : IDisposable
+    public class DatabaseManager : IDisposable
     {
         private static string _workingDir = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + "/Data";
 
         private readonly SQLiteConnection _db;
 
-        public PageManager(bool removeDataDirectory = false)
+        public DatabaseManager(bool removeDataDirectory = false)
         {
             if (removeDataDirectory && Directory.Exists(_workingDir))
             {
