@@ -15,15 +15,11 @@ namespace LocalSearchEngine.Database.Models
         public string Uri { get; set; }
         [Indexed, NotNull]
         public DateTime? LastCheck { get; set; }
-        public string Author { get; set; }
-        public string ByLine { get; set; }
         public string TextDirection { get; set; }
-        public string Excerpt { get; set; }
         public string Language { get; set; }
         public int Length { get; set; }
         public DateTime? PublicationDate { get; set; }
         public TimeSpan? TimeToRead { get; set; }
-        public string Title { get; set; }
 
         [Ignore]
         public PageContent Content { get; set; }
@@ -56,10 +52,7 @@ namespace LocalSearchEngine.Database.Models
 
         public void InsertMetadata(PageMetadata pageMetadata)
         {
-            Author = pageMetadata.Author;
-            ByLine = pageMetadata.ByLine;
             TextDirection = pageMetadata.TextDirection;
-            Excerpt = pageMetadata.Excerpt;
             Language = pageMetadata.Language;
             Length = pageMetadata.Length;
             PublicationDate = pageMetadata.PublicationDate;
@@ -73,11 +66,20 @@ namespace LocalSearchEngine.Database.Models
                 TimeToRead = pageMetadata.TimeToRead;
             }
 
-            Title = pageMetadata.Title;
-
-            if (!string.IsNullOrEmpty(pageMetadata.TextContent))
+            if (!string.IsNullOrEmpty(pageMetadata.TextContent) ||
+                !string.IsNullOrEmpty(pageMetadata.Title) ||
+                !string.IsNullOrEmpty(pageMetadata.Author) ||
+                !string.IsNullOrEmpty(pageMetadata.ByLine) ||
+                !string.IsNullOrWhiteSpace(pageMetadata.Excerpt))
             {
-                Content = new PageContent { Content = pageMetadata.TextContent };
+                Content = new PageContent
+                {
+                    Title = pageMetadata.Title,
+                    Content = pageMetadata.TextContent,
+                    Author = pageMetadata.Author,
+                    ByLine = pageMetadata.ByLine,
+                    Excerpt = pageMetadata.Excerpt
+                };
             }
         }
 
@@ -85,12 +87,12 @@ namespace LocalSearchEngine.Database.Models
         {
             PrintProperty(Id, nameof(Id));
             PrintProperty(Uri, nameof(Uri));
-            PrintProperty(Title, nameof(Title));
+            PrintProperty(Content?.Title, nameof(Content.Title));
             PrintProperty(LastCheck, nameof(LastCheck));
-            PrintProperty(Author, nameof(Author));
-            PrintProperty(ByLine, nameof(ByLine));
+            PrintProperty(Content?.Author, nameof(Content.Author));
+            PrintProperty(Content?.ByLine, nameof(Content.ByLine));
             PrintProperty(TextDirection, nameof(TextDirection));
-            PrintProperty(Excerpt, nameof(Excerpt));
+            PrintProperty(Content?.Excerpt, nameof(Content.Excerpt));
             PrintProperty(Language, nameof(Language));
             PrintProperty(Length, nameof(Length));
             PrintProperty(PublicationDate, nameof(PublicationDate));
@@ -103,14 +105,5 @@ namespace LocalSearchEngine.Database.Models
         {
             if (p != null) Console.WriteLine("{0,-20}{1,-20}", name, p);
         }
-    }
-
-    public class PageContent
-    {
-        [PrimaryKey]
-        public int Id { get; set; }
-
-        [NotNull]
-        public string Content { get; set; }
     }
 }
